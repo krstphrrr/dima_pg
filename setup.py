@@ -2,10 +2,7 @@ import os, time, pandas as pd
 
 import csv, pyodbc
 
-sources = pyodbc.dataSources()
-keys = sources.keys()
-for key in keys:
-   print(key)
+
 
 
 # set up some constants
@@ -16,22 +13,64 @@ DRV = '{Microsoft Access Driver (*.mdb, *.accdb)}'
 con = pyodbc.connect(r"DRIVER={};DBQ={};".format(DRV,MDB))
 con = pyodbc.connect('DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=C:\\Users\\kbonefont.JER-PC-CLIMATE4\\Desktop\\Some_data\\db.mdb;')
 cur = con.cursor()
-list(cur.columns())
+con.setencoding(encoding='utf-8')
 
 
+
+
+
+cur = con.cursor()
+
+
+print(cur.columns(new_tbllist[1]))
+
+def get_cols():
+    col_count = {}
+    for table in []
+
+cur.columns(table=tbls[0])
+
+
+
+for row in cur.tables():
+    print(row.table_name)
+
+
+row.table_name
+
+
+
+
+
+
+new_tbllist=[]
 for tbl in list(cur.tables()):
     if "tbl" in tbl[2]:
-        print(tbl[2])
+        if tbl.table_type == "TABLE":
+            new_tbllist += [tbl.table_name,]
+
+for tbl in cur.tables():
+    if "tbl" in tbl[2]:
+        for row in cur.columns(table=tbl):
+            print(row.column_name)
 
 
 
 
-# you could change the mode from 'w' to 'a' (append) for any subsequent queries
-with open('mytable.csv', 'wb') as fou:
-    csv_writer = csv.writer(fou) # default field-delimiter is ","
-    csv_writer.writerows(rows)
+for tbl in cur.tables():
+    print(tbl.table_name)
 
+if cur.tables(table='tblTempPlots').fetchone():
+    print('mhm')
+new_list = []
 
+def tbl_(table):
+    tbl = "{}".format(table)
+    for row in cur.columns(table=tbl):
+        # new_list.append(row.column_name)
+        print(row.column_name)
+
+tbl_('tblLICDetail')
 
 startTime = time.time()
 print ("Start time is " + time.asctime())
@@ -127,3 +166,61 @@ for inDIMA in listDIMAs:
 
                 arcpy.RemoveJoin_management("tempFL")
             arcpy.Delete_management("tempFL")
+
+
+# def create_tables(self):
+#
+#     # Generate list of tables in schema
+#     table_list = list()
+#     for table in self.access_cur.tables():
+#         if table.table_type == "TABLE":
+#             table_list += [table.table_name, ]
+#
+#     for table in table_list:
+#         SQL = """
+#         CREATE TABLE "{schema}"."{table}"
+#         (
+#         """.format(schema=self.schema_name, table=table)
+#
+#         SQL += self.create_fields(table)
+#
+#         SQL += """
+#         ) """
+#
+#         if self.print_SQL:
+#             print(SQL)
+#
+#         self.pg_cur.execute(SQL)
+#         self.pg_con.commit()
+#
+# def create_fields(self, table):
+#
+#     postgresql_fields = {
+#         'COUNTER': 'serial',  # autoincrement
+#         'VARCHAR': 'text',  # text
+#         'LONGCHAR': 'text',  # memo
+#         'BYTE': 'integer',  # byte
+#         'SMALLINT': 'integer',  # integer
+#         'INTEGER': 'bigint',  # long integer
+#         'REAL': 'real',  # single
+#         'DOUBLE': 'double precision',  # double
+#         'DATETIME': 'timestamp',  # date/time
+#         'CURRENCY': 'money',  # currency
+#         'BIT':  'boolean',  # yes/no
+#     }
+#
+#     SQL = ""
+#     field_list = list()
+#     for column in self.access_cur.columns(table=table):
+#         if column.type_name in postgresql_fields:
+#             field_list += ['"' + column.column_name + '"' +
+#                            " " + postgresql_fields[column.type_name], ]
+#         elif column.type_name == "DECIMAL":
+#             field_list += ['"' + column.column_name + '"' +
+#                            " numeric(" + str(column.column_size) + "," +
+#                            str(column.decimal_digits) + ")", ]
+#         else:
+#             print("column " + table + "." + column.column_name +
+#             " has uncatered for type: " + column.type_name)
+#
+#     return ",\n ".join(field_list)
