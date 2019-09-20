@@ -153,29 +153,54 @@ def create_fields(table):
             " has uncatered for type: " + col.type_name)
     return ",\n ".join(field_list)
 create_fields('tblGISDatums')
-''
-for table in just_three:
+
+dflist=[]
+seen = None
+for i in range(len(just_three)):
     import pandas as pd
     # first_round = 'DROP TABLE IF EXISTS '
     # SQL ='CREATE TABLE db."{table}"('.format(table=table)
     # SQL += create_fields(table)
     # SQL +=")"
-    query = '\'SELECT * FROM db."{table}"\''.format(table=table)
+    seen = set(dflist)
+    if just_three[i] not in seen:
+        seen.add(just_three[i])
+        query = '\'SELECT * FROM db."{table}"\''.format(table=just_three[i])
+        exec('{df} = pd.read_sql({query},con)'.format(df=just_three[i],query=query))
+        dflist.append(just_three[i])
+
+
+for df in dflist:
+    if 'RecKey' in eval(df).columns:
+        print(df,"has RecKey.")
+    else:
+        print(df,"does not have RecKey")
+
+
     # pgcur.execute(SQL)
     dflist = {'a':'df1','b':'df2','c':'df3'}
-    dflist2 =[]
+
+    # assigns the results of query directly to dataframe
     for df in dflist:
         exec('{df} = pd.read_sql({query},con)'.format(df=table,query=query))
-        dflist2.append(table)
-    for df in dflist2:
-        print('RecKey' in eval(df).columns)
-        elif 'daysExposed' in eval(dfs).columns:
-            print("yes")
-
-
+    dflist2.append(table)
+    print(dflist2, len(dflist2))
     for unit in dflist2:
-        print(eval(unit).columns)
-        print('RecKey' in eval(df).columns)
+        print(dflist2)
+
+
+        seen.add()
+        print(dflist2)
+    for i in range(dflist2:
+        print(dflist2[i])
+        while df not in dflist3:
+            dflist3.add(df)
+            if df in dflist3:
+                break
+
+        print(dflist3[df].columns)
+        # print(eval(df).columns)
+        # print('RecKey' in eval(df).columns)
         if 'RecKey' in eval(df).columns:
             print("no")
         elif 'daysExposed' in eval(df).columns:

@@ -102,3 +102,25 @@ class all_pg():
                 " has uncatered for type: " + column.type_name)
 
         return ",\n ".join(field_list)
+if __name__ == "__main__":
+    if len(sys.argv) != 2
+    and os.path.exists(config_path)
+    and config_path.endswith('.json'):
+        exit("Requires a config json file")
+
+    config_path = os.path.abspath(sys.argv[1])
+
+    config_data = json.load(open(config_path))
+
+    pg_con_string = config_data['postgresql_connection_string']
+    print_SQL = config_data['print_SQL']
+
+    for access_con_string in config_data['access_connection_strings']:
+
+        converter = Converter(access_con_string, pg_con_string, print_SQL)
+
+        converter.create_schema()
+
+        converter.create_tables()
+
+        converter.insert_data()
