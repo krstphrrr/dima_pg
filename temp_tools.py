@@ -529,3 +529,7 @@ def currnt(tbl):
     cur1.execute(
      sql.SQL('UPDATE gisdb.public.{0} SET "DateLoadedInDb"=now()').format(sql.Identifier(tbl)) )
     con1.commit()
+
+import os
+string = r"C:\Users\kbonefont.JER-PC-CLIMATE4\Desktop\Some_data\db.mdb"
+os.path.basename(string)[:]
