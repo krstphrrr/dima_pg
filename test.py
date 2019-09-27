@@ -2,6 +2,15 @@ import pandas as pd
 import os
 from arcnah import arcno
 
+def fun1(arg):
+    print(f'{arg}')
+
+def fun2(arg):
+    print(arg)
+
+type(fun1('something'))
+
+type(fun2('something'))
 
 """
 directories
@@ -31,9 +40,10 @@ listDIMAs = []
 # pd.merge(df,dff,on='RecKey',how='outer')
 # pd
 #
-# from arcnah import arcno
-# arcno = arcno()
-# arcno.MakeTableView_management('tblGapDetail')
+from arcnah import arcno
+arcno = arcno()
+
+arcno.MakeTableView_management('tblGapDetail')
 # df = arcno.temp
 # dff = arcno.temp
 # df1 = df[0:9]
@@ -44,7 +54,9 @@ listDIMAs = []
 # arcno.GetCount_management()
 # arcno.AddJoin_management(df,'RecKey',dff,'RecKey')
 # arcno.temp_table
-# arcno.SelectLayerByAttribute_management(arcno.temp, "RecKey",1809200916516982)
+arcno.SelectLayerByAttribute_management(arcno.temp, "RecKey",1809200916516982,operator="<>")
+arcno.temp.shape
+
 # arcno.GetCount_management()
 # for table in tableList:
 #     print(table)
@@ -85,12 +97,19 @@ for inDIMA in listDIMAs:
             arcno.MakeTableView_management(table)
             tempFL = arcno.temp
             if not table in appendTables:
+                tempfield = tableList[table]
+                arcno.MakeTableView_management(table)
+                temp_table = pd.merge(tempFL,arcno.temp,left_on=tempfield,right_on=tempfield)
+                print(temp_table.shape)
+                arcno.SelectLayerByAttribute_management(temp_table, tempfield,)
+
+                # arcno.AddJoin_management(tempFL,
+                # tableList[table], table,
+                # tableList[table])
+                # arcno.temp_table
 
 
-                arcno.AddJoin_management(tempFL,
-                tableList[table], inDIMA +
-                "\\" + table, tableList[table],
-                "KEEP_COMMON")
+
 
 
                 arcpy.SelectLayerByAttribute_management ("tempFL", "NEW_SELECTION", table + "." + tableList[table] + " <> '999999999' And " + table + "." + tableList[table] + " <> '888888888'")

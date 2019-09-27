@@ -8,7 +8,7 @@ import pandas as pd
 # if arcpy counts rows of temp view filtered with select, arcno counts rows of dataframe filtered through if statement dependent on a methods argument
 import pyodbc
 from temp_tools import msconfig
-
+# iris = pd.read_csv(r'C:\Users\kbonefont.JER-PC-CLIMATE4\Desktop\iris.csv')
 
 #
 # param = msconfig()
@@ -21,7 +21,7 @@ from temp_tools import msconfig
 #         if tbl.table_type == "TABLE":
 #             full_tbl_list += [tbl.table_name,]
 #
-
+type(4)==str
 
 class arcno():
     temp = None
@@ -47,35 +47,46 @@ class arcno():
         print("used query:"+query)
         self.temp = pd.read_sql(query,con)
 
-    def SelectLayerByAttribute_management(self, in_df, field = None, val= None):
+    def SelectLayerByAttribute_management(self, in_df, field = None, val=None, op = None):
         self.in_df = in_df
         self.field = field
         self.val = val
 
-        # if there's a value to look up, index by it
-        if val != None and type(val) == str:
-            index= self.in_df[f'{self.field}'].str.contains(f'{self.val}$')
-            self.temp= self.temp[index]
-            self.exist=True
+        if op==None:
+            # if there's a value to look up, index by it
+            if val != None and type(val) == str:
+                index= self.in_df[f'{self.field}'].str.contains(f'{self.val}$')
+                self.temp= self.temp[index]
+                self.exist=True
 
-        elif val != None and type(val) == int:
-            # self.val
-            index= self.in_df[f'{self.field}']==f'{self.val}'
-            self.temp= self.in_df[index]
-            self.exist=True
+            elif val != None and type(val) == int:
+                # self.val
+                index= self.in_df[f'{self.field}']==f'{self.val}'
+                self.temp= self.in_df[index]
+                self.exist=True
 
-        # else if theres not value to look up and field does not exist within table, return warning
-        elif val == None and self.field not in self.in_df.columns:
-            print('field does not exist')
-            self.exist=False
+            # else if theres not value to look up and field does not exist within     table, return warning
+            elif val == None and self.field not in self.in_df.columns:
+                print('field does not exist')
+                self.exist=False
 
-        # else if there's no value to look up, print unique values in supplied field
-        else:
-            exec(f'self.uniq = self.temp.{self.field}.unique()')
-            #self.uniq = pd.DataFrame(self.uniq)
-            # print(self.uniq)
-            # print("this attr. has",len(self.temp.f'{self.field}'.unique()),"unique values, please specify")
-            self.exist=False
+            # else if there's no value to look up, print unique values in supplied     field
+            else:
+                exec(f'self.uniq = self.temp.{self.field}.unique()')
+                #self.uniq = pd.DataFrame(self.uniq)
+                # print(self.uniq)
+                # print("this attr.     has",len(self.temp.f'{self.field}'.unique()),"unique values, please     specify")
+                self.exist=False
+        elif op=="<>":
+            if val != None and type(val) == str:
+                index = self.in_df[f'{self.field}'].str.contains(f'{self.val}$')
+                self.temp = self.temp[~index]
+                self.exist = True
+            elif val != None and type(val) == int:
+                # self.val
+                index = self.in_df[f'{self.field}']==f'{self.val}'
+                self.temp = self.in_df[~index]
+                self.exist = True
 
     def GetCount_management(self):
         if self.exist==False:
@@ -91,29 +102,45 @@ class arcno():
             print("use SelectLayerByAttribute first")
             return(len(self.temp))
 
-    def AddJoin_management(self, in_df, field, jointable,join_field,):
+    def AddJoin_management(self, in_df,jointable,**kwargs):
+        options = {
+                'op1': None,
+                'op2': None,}
+
         self.in_df = in_df
-        self.field = field
+        self.field = kwargs.get('op1')
         self.jointable = jointable
-        self.join_field = join_field
-        self.how = how
+        self.join_field = kwargs.get('op2')
 
-        if self.field==self.join_field:
-            self.temp_table = pd.merge(self.in_df,
-            self.jointable,on=self.field,how='outer')
+        options.update(kwargs)
+        self.temp_table=pd.merge(self.in_df,self.jointable, left_on=self.field, right_on=self.join_field)
 
-        if self.field != self.join_field:
-            self.temp_table = pd.merge(self.in_df,
-            self.jointable, left_on=self.field,right_on=self.join_field)
+
+        # self.temp_table = [self.in_df,self.field]
+
+
+
+
+        # self.how = how ### this could be used to choose type of merge but unneeded rn
+
+        # if self.field == self.join_field:
+        #     self.temp_table = pd.merge(self.in_df,
+        #     self.jointable,on=self.field,how='outer')
+        #
+        # if self.field != self.join_field:
+        #     self.temp_table = pd.merge(self.in_df,
+        #     self.jointable, left_on=self.field,right_on=self.join_field)
 
         # # second_df=
         #
-        # self.temp_join=pd.merge(self.in_df,self.jointable, left_on=self.field, right_on=self.join_field)
-        # print(self.temp_join)
 
 
 
 
+# arcno.AddJoin_management(self=arcno,in_df=i1,field='species',jointable=i2,join_field='sp2')
+# arcno.AddJoin_management(self=arcno,in_df=i1,jointable=i2,op1='species',op2='sp2')
+# arcno.temp_table
+# arcno.temp_table
 
 # arcno = arcno()
 # arcno.MakeTableView_management('tblGapDetail')
@@ -155,20 +182,34 @@ class arcno():
 
 
 
-class iris():
-    df = None
-    word=None
-    val = None
-
-    def ind(self,word,val = None):
-        self.word = word
-        self.val = val
-        if self.val != None:
-            index = self.df["{word}".format(word=self.word)] =='{val}'.format(val=self.val)
-            self.df = self.df[index]
-
-        else:
-            pass
+# class iris():
+#     df = None
+#     word=None
+#     val = None
+#
+#     def ind(self,word,val = None):
+#         self.word = word
+#         self.val = val
+#         if self.val != None:
+#             index = self.df["{word}".format(word=self.word)] =='{val}'.format(val=self.val)
+#             self.df = self.df[index]
+#
+#         else:
+#             pass
+#
+# iris = iris()
+# iris.ind()
+# #
+# ind1=ir['species']=='setosa'
+# i1=iris[ind1][0:15]
+# i2=iris[ind1][16:30]
+# #
+# # iris_s=iris[ind1]
+# # i1=iris_s[0:15]
+# # i2=iris_s[16:30]
+# #
+# # i2.columns
+# i2.rename(columns={'species':'sp2'},inplace=True)
 
 # iris = iris()
 # iris.df = ir
