@@ -40,30 +40,49 @@ listDIMAs = []
 # pd.merge(df,dff,on='RecKey',how='outer')
 # pd
 #
+# 1807121252394813
+#
 from arcnah import arcno
 arcno = arcno()
-
+# ind=[1807121252394813,180712125342201]
 arcno.MakeTableView_management('tblGapDetail')
-# df = arcno.temp
-# dff = arcno.temp
-# df1 = df[0:9]
-# df2 = df[10:21]
-# pd.concat([df1,df2])
-# number =180712125342201
-# print(df['RecKey']==f'{number}')
-# arcno.GetCount_management()
-# arcno.AddJoin_management(df,'RecKey',dff,'RecKey')
-# arcno.temp_table
-arcno.SelectLayerByAttribute_management(arcno.temp, "RecKey",1809200916516982,operator="<>")
-arcno.temp.shape
+df1 = pd.DataFrame({'employee': ['Bob', 'Jake', 'Lisa', 'Sue'],
+                    'group': ['Accounting', 'Engineering', 'Engineering', 'HR']})
+df2 = pd.DataFrame({'employee': ['Lisa', 'Bob', 'Jake', 'Sue'],
+                    'hire_date': [2004, 2008, 2012, 2014]})
+display('df1', 'df2')
+df = arcno.temp
+dff = arcno.temp
+df1 = df[0:9]
+df2 = df[10:21]
+pd.concat([df1,df2])
+number =180712125342201
+print(df['RecKey']==f'{number}')
+arcno.GetCount_management()
+arcno.AddJoin_management(df3,df4,'group','group')
+df3 = arcno.temp_table
 
+df4 = pd.DataFrame({'group': ['Accounting', 'Engineering', 'HR'],
+                    'supervisor': ['Carly', 'Guido', 'Steve']})
+
+
+# arcno.temp_table
+# arcno.SelectLayerByAttribute_management(arcno.temp, "RecKey",1807121252394813 and 180712125342201)
+# for val in arcno.temp:
+#
+# ind in arcno.temp['RecKey']
+# [arcno.temp[i] for i in ind]
+# [ind not in row[1] for row in arcno.temp]
+# arcno.uniq
+# arcno.temp.shape[0]
 # arcno.GetCount_management()
 # for table in tableList:
 #     print(table)
 #     if stopFlag == 0:
 #         print(arcno.MakeTableView_management(self=arcno,in_table=table))
 
-
+for i in ind:
+    arcno.temp[i]
 """
 loop
 """
@@ -95,13 +114,28 @@ for inDIMA in listDIMAs:
             else:
                 print("      " + table + " - No Dups found")
             arcno.MakeTableView_management(table)
-            tempFL = arcno.temp
+            # tempFL = arcno.temp
             if not table in appendTables:
-                tempfield = tableList[table]
-                arcno.MakeTableView_management(table)
-                temp_table = pd.merge(tempFL,arcno.temp,left_on=tempfield,right_on=tempfield)
-                print(temp_table.shape)
-                arcno.SelectLayerByAttribute_management(temp_table, tempfield,)
+                # tempfield = tableList[table]
+                # arcno.MakeTableView_management(table)
+                # temp_table = pd.merge(tempFL,arcno.temp,left_on=tempfield,right_on=tempfield)
+                arcno.AddJoin_management(tempFL,arcno.temp,left_on=tableList[table],right_on=tableList[table])
+
+                print(arcno.temp_table.shape)
+                arcno.
+                if temp_table.shape[0]!=0:
+                    arcno.SelectLayerByAttribute_management(temp_table, tempfield,999999999,op='<>')
+                    tmp1 = arcno.temp
+                    print(tmp1.shape)
+                    joinedCount =
+                arcno.SelectLayerByAttribute_management(temp_table, tempfield,888888888,op='<>')
+                tmp2 = arcno.temp
+                try:
+                    tmp1_tmp2 = pd.merge(tmp1,tmp2,on=tempfield,how='inner')
+                    arcno.temp = tmp1_tmp2
+                    arcno.GetCount_management()
+
+
 
                 # arcno.AddJoin_management(tempFL,
                 # tableList[table], table,

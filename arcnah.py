@@ -9,6 +9,17 @@ import pandas as pd
 import pyodbc
 from temp_tools import msconfig
 # iris = pd.read_csv(r'C:\Users\kbonefont.JER-PC-CLIMATE4\Desktop\iris.csv')
+#
+# set(pd.Series(iris.columns))
+#
+# class df_sets:
+#     _df = None
+#     _cols = None
+#     def __init__(self,input):
+#         self.input = input
+#         self._cols = set(pd.Series(input.columns))
+#
+
 
 #
 # param = msconfig()
@@ -32,11 +43,13 @@ class arcno():
     temp_join=None
     how = None
     # in_table = None
-    def __init__(self, in_table = None, in_df = None):
+    def __init__(self, in_table = None, in_df = None, right_on=None, left_on = None):
         self.in_table = in_table
         self.in_df = in_df
+        self.right_on = right_on
+        self.left_on = left_on
 
-    def MTV(self,in_table): # <= create df from ms table , make table view
+    def MakeTableView_management(self,in_table): # <= create df from ms table , make table view
         import pyodbc
         self.in_table = in_table
         from temp_tools import msconfig
@@ -47,7 +60,7 @@ class arcno():
         print("used query:"+query)
         self.temp = pd.read_sql(query,con)
 
-    def SLBA(self, in_df, field = None, val=None, op = None): # <= select layer by att
+    def SelectLayerByAttribute_management(self, in_df, field = None, val=None, op = None): # <= select layer by att
         self.in_df = in_df
         self.field = field
         self.val = val
@@ -88,7 +101,7 @@ class arcno():
                 self.temp = self.in_df[~index]
                 self.exist = True
 
-    def GC(self):  # <= get count
+    def GetCount_management(self):  # <= get count
         if self.exist==False:
 
             return int(0)
@@ -102,31 +115,17 @@ class arcno():
             print("use SelectLayerByAttribute first")
             return(len(self.temp))
 
-    def AddJoin_management(self, in_df,jointable,**kwargs): # <= add join..
-        options = {
-                'op1': None,
-                'op2': None,}
+    def AddJoin_management(self,
+    in_df,df2,right_on=None,left_on=None):
+
+        d={}
+
+        d[self.right_on] = right_on
+        d[self.left_on] = left_on
 
         self.in_df = in_df
-        self.field = kwargs.get('op1')
-        self.jointable = jointable
-        self.join_field = kwargs.get('op2')
-
-        options.update(kwargs)
-        self.temp_table=pd.merge(self.in_df,self.jointable, left_on=self.field, right_on=self.join_field)
-
-
-        # self.temp_table = [self.in_df,self.field]
+        self.df2 = df2
 
 
 
-
-        # self.how = how ### this could be used to choose type of merge but unneeded rn
-
-        # if self.field == self.join_field:
-        #     self.temp_table = pd.merge(self.in_df,
-        #     self.jointable,on=self.field,how='outer')
-        #
-        # if self.field != self.join_field:
-        #     self.temp_table = pd.merge(self.in_df,
-        #     self.jointable, left_on=self.field,right_on=self.join_field)
+        self.temp_table=self.in_df.merge(self.df2,right_on=d[self.right_on], left_on=d[self.left_on])
