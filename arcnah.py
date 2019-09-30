@@ -21,7 +21,7 @@ from temp_tools import msconfig
 #         if tbl.table_type == "TABLE":
 #             full_tbl_list += [tbl.table_name,]
 #
-type(4)==str
+
 
 class arcno():
     temp = None
@@ -36,7 +36,7 @@ class arcno():
         self.in_table = in_table
         self.in_df = in_df
 
-    def MakeTableView_management(self,in_table): # <= create df from an ms table
+    def MTV(self,in_table): # <= create df from ms table , make table view
         import pyodbc
         self.in_table = in_table
         from temp_tools import msconfig
@@ -47,7 +47,7 @@ class arcno():
         print("used query:"+query)
         self.temp = pd.read_sql(query,con)
 
-    def SelectLayerByAttribute_management(self, in_df, field = None, val=None, op = None):
+    def SLBA(self, in_df, field = None, val=None, op = None): # <= select layer by att
         self.in_df = in_df
         self.field = field
         self.val = val
@@ -88,7 +88,7 @@ class arcno():
                 self.temp = self.in_df[~index]
                 self.exist = True
 
-    def GetCount_management(self):
+    def GC(self):  # <= get count
         if self.exist==False:
 
             return int(0)
@@ -102,7 +102,7 @@ class arcno():
             print("use SelectLayerByAttribute first")
             return(len(self.temp))
 
-    def AddJoin_management(self, in_df,jointable,**kwargs):
+    def AddJoin_management(self, in_df,jointable,**kwargs): # <= add join..
         options = {
                 'op1': None,
                 'op2': None,}
@@ -130,89 +130,3 @@ class arcno():
         # if self.field != self.join_field:
         #     self.temp_table = pd.merge(self.in_df,
         #     self.jointable, left_on=self.field,right_on=self.join_field)
-
-        # # second_df=
-        #
-
-
-
-
-# arcno.AddJoin_management(self=arcno,in_df=i1,field='species',jointable=i2,join_field='sp2')
-# arcno.AddJoin_management(self=arcno,in_df=i1,jointable=i2,op1='species',op2='sp2')
-# arcno.temp_table
-# arcno.temp_table
-
-# arcno = arcno()
-# arcno.MakeTableView_management('tblGapDetail')
-# df1=arcno.temp
-# df1
-
-
-# arcno.SelectLayerByAttribute_management(df1,'RecKey')
-# arcno.single_field
-# arcno.temp
-# arcno.GetCount_management()
-# for table in tableList:
-#     arcno.MakeTableView_management(table)
-# class pr():
-#     word = None
-#     # def __init__(self, word=None):
-#     #     self.word = word
-#     # def get_string(self):
-#     #     self.word = input()
-#
-#     def inter(self,word):
-#         self.word = word
-#         print(self.word)
-#
-# pr = pr()
-# pr.inter('aqw')
-#
-# pr.get_string()
-# pr.inter()
-# import pandas as pd
-# ir = pd.read_csv(r'C:\Users\kbonefont.JER-PC-CLIMATE4\Desktop\iris.csv')
-#
-# ir.columns
-# pr
-# irr = ir['species'].str.contains('osa$')
-# ir[irr]
-#
-# ir['species'].str.contains('osa$')
-
-
-
-# class iris():
-#     df = None
-#     word=None
-#     val = None
-#
-#     def ind(self,word,val = None):
-#         self.word = word
-#         self.val = val
-#         if self.val != None:
-#             index = self.df["{word}".format(word=self.word)] =='{val}'.format(val=self.val)
-#             self.df = self.df[index]
-#
-#         else:
-#             pass
-#
-# iris = iris()
-# iris.ind()
-# #
-# ind1=ir['species']=='setosa'
-# i1=iris[ind1][0:15]
-# i2=iris[ind1][16:30]
-# #
-# # iris_s=iris[ind1]
-# # i1=iris_s[0:15]
-# # i2=iris_s[16:30]
-# #
-# # i2.columns
-# i2.rename(columns={'species':'sp2'},inplace=True)
-
-# iris = iris()
-# iris.df = ir
-# iris.ind('species','setosa')
-# iris.df
-# ir[species == 'setosa']
