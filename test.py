@@ -42,10 +42,10 @@ listDIMAs = []
 #
 # 1807121252394813
 #
+import pandas as pd
 from arcnah import arcno
 arcno = arcno()
 # ind=[1807121252394813,180712125342201]
-arcno.MakeTableView_management('tblGapDetail')
 df1 = pd.DataFrame({'employee': ['Bob', 'Jake', 'Lisa', 'Sue'],
                     'group': ['Accounting', 'Engineering', 'Engineering', 'HR']})
 df2 = pd.DataFrame({'employee': ['Lisa', 'Bob', 'Jake', 'Sue'],
@@ -59,15 +59,61 @@ pd.concat([df1,df2])
 number =180712125342201
 print(df['RecKey']==f'{number}')
 arcno.GetCount_management()
-arcno.AddJoin_management(df3,df4,'group','group')
+arcno.AddJoin_management(df1,df2,'groups','')
+arcno.temp_table
+
+
 df3 = arcno.temp_table
 
 df4 = pd.DataFrame({'group': ['Accounting', 'Engineering', 'HR'],
                     'supervisor': ['Carly', 'Guido', 'Steve']})
 
+from arcnah import arcno
+arcno = arcno()
+arcno.MakeTableView_management('tblGapDetail')
+df = arcno.temp
+type(arcno.temp)
+arcno.temp.columns
+arcno.temp
+arcno.temp2
+arcno.SelectLayerByAttribute_management(df, "RecKey", 1807121252394813, 180712125342201)
 
-# arcno.temp_table
-# arcno.SelectLayerByAttribute_management(arcno.temp, "RecKey",1807121252394813 and 180712125342201)
+arcno.temp
+arcno.
+
+arcno.uniq
+fulldf = arcno.temp
+
+# 1807121252394813
+firstdf = arcno.temp
+
+# 180712125342201
+
+seconddf = arcno.temp
+
+index1 = fulldf['RecKey'].str.contains('1807121252394813')
+temp = fulldf[index1]
+
+index2 = fulldf['RecKey'].str.contains('180712125342201')
+temp2 = fulldf[index2]
+
+import pandas as pd
+frames = [temp,temp2]
+temp = pd.concat(frames)
+
+
+
+
+
+
+
+str = f'{os.path.basename(listDIMAs[1])[:-6]}'
+str
+
+
+
+
+
 # for val in arcno.temp:
 #
 # ind in arcno.temp['RecKey']
@@ -101,10 +147,11 @@ for inDIMA in listDIMAs:
             from arcnah import arcno
             arcno = arcno()
             arcno.MakeTableView_management(table)
+            str = f'{os.path.basename(listDIMAs[1])[:-6]}'
             tempFL = arcno.temp
-            arcno.SelectLayerByAttribute_management (tempFL, "RecKey")
-            tempFL = arcno.temp
+            arcno.SelectLayerByAttribute_management (arcno.temp, "DBKey", str)
             dimaCount =  arcno.GetCount_management()
+            print(dimaCount)
             if dimaCount > 0:
                 print("      " + table + " - ERROR Records with the same or similar DBKey found!")
                 print("   ** Skipping DIMA " + inDIMA + " - failed Dups check! **")
@@ -113,20 +160,18 @@ for inDIMA in listDIMAs:
                 continue
             else:
                 print("      " + table + " - No Dups found")
-            arcno.MakeTableView_management(table)
+            tempFL = arcno.MakeTableView_management(table)
             # tempFL = arcno.temp
             if not table in appendTables:
-                # tempfield = tableList[table]
-                # arcno.MakeTableView_management(table)
-                # temp_table = pd.merge(tempFL,arcno.temp,left_on=tempfield,right_on=tempfield)
+
                 arcno.AddJoin_management(tempFL,arcno.temp,left_on=tableList[table],right_on=tableList[table])
 
-                print(arcno.temp_table.shape)
-                arcno.
-                if temp_table.shape[0]!=0:
-                    arcno.SelectLayerByAttribute_management(temp_table, tempfield,999999999,op='<>')
-                    tmp1 = arcno.temp
-                    print(tmp1.shape)
+                print(arcno.temp_table.shape) # first join tempfl + temp
+
+                if arcno.temp_table.shape[0]!=0:
+                    arcno.SelectLayerByAttribute_management(arcno.temp_table, tableList[table],999999999,888888888)
+
+                    print(arcno.temp.shape)
                     joinedCount =
                 arcno.SelectLayerByAttribute_management(temp_table, tempfield,888888888,op='<>')
                 tmp2 = arcno.temp

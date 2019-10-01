@@ -38,10 +38,15 @@ class arcno():
     temp = None
     string = None
     uniq = None
+    frames = None
     single_field = None
     exist=None
     temp_join=None
     how = None
+    temp2 = None
+
+    t1 = None
+    t2 = None
     # in_table = None
     def __init__(self, in_table = None, in_df = None, right_on=None, left_on = None):
         self.in_table = in_table
@@ -60,46 +65,94 @@ class arcno():
         print("used query:"+query)
         self.temp = pd.read_sql(query,con)
 
-    def SelectLayerByAttribute_management(self, in_df, field = None, val=None, op = None): # <= select layer by att
+    def SelectLayerByAttribute_management(self,
+    in_df, field = None, val1=None, val2 = None,
+    op = None): # <= select layer by att
+        import pandas as pd
         self.in_df = in_df
         self.field = field
-        self.val = val
+        self.val1 = val1
+        self.val2 = val2
 
-        if op==None:
-            # if there's a value to look up, index by it
-            if val != None and type(val) == str:
-                index= self.in_df[f'{self.field}'].str.contains(f'{self.val}$')
-                self.temp= self.temp[index]
-                self.exist=True
+        if all(self.in_df):
+            try:
+                if self.field in self.in_df.columns:
+                # if there's a value to look up, index by it
+                    if val1 is not None and type(val1) == str and val2 is None:
+                        if op is not None:
+                            index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
+                            self.temp= self.in_df[~index]
+                            self.exist=True
 
-            elif val != None and type(val) == int:
-                # self.val
-                index= self.in_df[f'{self.field}']==f'{self.val}'
-                self.temp= self.in_df[index]
-                self.exist=True
+                        else:
+                            index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
+                            self.temp= self.in_df[index]
+                            self.exist=True
 
-            # else if theres not value to look up and field does not exist within     table, return warning
-            elif val == None and self.field not in self.in_df.columns:
+                # if there's a val2, join to df indexed by val1 (first filter)
+
+
+                    elif val1 is not None and type(val1) == str and val2 is not None:
+                        if op is not None:
+                            index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
+                            self.t1= self.in_df[~index]
+                            index2 = self.in_df[f'{self.field}'].str.contains(f'{self.val2}')
+                            self.t2= self.in_df[~index2]
+                            frames = [self.t1, self.t2]
+                            self.temp = pd.concat(frames) # <- join     of filtered df's
+                            self.exist=True
+
+                        else:
+                            index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
+                            self.t1= self.in_df[index]
+                            index2 = self.in_df[f'{self.field}'].str.contains(f'{self.val2}')
+                            self.t2 = self.in_df[index2]
+                            frames = [self.t1, self.t2]
+                            self.temp = pd.concat(frames)
+                            self.exist=True
+
+                    elif val1 is not None and type(val1) == int and val2 is None:
+                        if op is not None:
+                            index= self.in_df[f'{self.field}']==f'{self.val1}'
+                            self.temp= self.in_df[~index]
+                            self.exist=True
+
+                        else:
+                            index= self.in_df[f'{self.field}']==f'{self.val1}'
+                            self.temp= self.in_df[index]
+                            self.exist=True
+
+                    elif val1 is not None and type(val1) == int and val2 is not None:
+                         if op is not None:
+                             index = self.in_df[f'{self.field}']==f'{self.val1}'
+                             self.t1 = self.in_df[~index]
+                             index2 = self.in_df[f'{self.field}']==f'{self.val2}'
+                             self.t2 = self.in_df[~index2]
+                             frames = [self.t1, self.t2]
+                             self.temp = pd.concat(frames)
+                             self.exist=True
+
+                         else:
+                             index = self.in_df[f'{self.field}']==f'{self.val1}'
+                             self.t1 = self.in_df[index]
+                             index2 = self.in_df[f'{self.field}']==f'{self.val2}'
+                             self.t2 = self.in_df[index2]
+                             frames = [self.t1, self.t2]
+                             self.temp = pd.concat(frames)
+                             self.exist=True
+
+                # else if there's no value to look up, print unique values in supplied     field
+                elif val1 is None:
+                        exec(f'self.uniq = self.temp.{self.field}.unique()')
+                        self.exist=False
+
+            # else if theres not value to look up and field does not exist
+            # within table, return warning
+            except:
                 print('field does not exist')
                 self.exist=False
-
-            # else if there's no value to look up, print unique values in supplied     field
-            else:
-                exec(f'self.uniq = self.temp.{self.field}.unique()')
-                #self.uniq = pd.DataFrame(self.uniq)
-                # print(self.uniq)
-                # print("this attr.     has",len(self.temp.f'{self.field}'.unique()),"unique values, please     specify")
-                self.exist=False
-        elif op=="<>":
-            if val != None and type(val) == str:
-                index = self.in_df[f'{self.field}'].str.contains(f'{self.val}$')
-                self.temp = self.temp[~index]
-                self.exist = True
-            elif val != None and type(val) == int:
-                # self.val
-                index = self.in_df[f'{self.field}']==f'{self.val}'
-                self.temp = self.in_df[~index]
-                self.exist = True
+        else:
+            print('input df')
 
     def GetCount_management(self):  # <= get count
         if self.exist==False:
@@ -117,6 +170,7 @@ class arcno():
 
     def AddJoin_management(self,
     in_df,df2,right_on=None,left_on=None):
+        import pandas as pd
 
         d={}
 
@@ -125,7 +179,14 @@ class arcno():
 
         self.in_df = in_df
         self.df2 = df2
+        if self.right_on==self.left_on:
+            try:
+                self.temp_table = self.in_df.merge(self.df2, on = d[self.right_on])
+            except:
+                print('field or fields invalid')
 
-
-
-        self.temp_table=self.in_df.merge(self.df2,right_on=d[self.right_on], left_on=d[self.left_on])
+        else:
+            try:
+                self.temp_table=self.in_df.merge(self.df2,right_on=d[self.right_on], left_on=d[self.left_on])
+            except:
+                print('field or fields invalid')
