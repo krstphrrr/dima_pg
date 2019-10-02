@@ -77,7 +77,7 @@ arcno.temp.columns
 arcno.temp
 arcno.temp2
 arcno.SelectLayerByAttribute_management(df, "RecKey", 1807121252394813, 180712125342201)
-
+arcno.temp.shape[0]
 arcno.temp
 arcno.
 
@@ -149,7 +149,8 @@ for inDIMA in listDIMAs:
             arcno.MakeTableView_management(table)
             str = f'{os.path.basename(listDIMAs[1])[:-6]}'
             tempFL = arcno.temp
-            arcno.SelectLayerByAttribute_management (arcno.temp, "DBKey", str)
+            arcno.SelectLayerByAttribute_management (arcno.temp, "RecKey", 1807121252394813)
+            print("Diff: ",tempFL.shape[0]-arcno.temp.shape[0])
             dimaCount =  arcno.GetCount_management()
             print(dimaCount)
             if dimaCount > 0:

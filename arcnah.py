@@ -67,7 +67,11 @@ class arcno():
 
     def SelectLayerByAttribute_management(self,
     in_df, field = None, val1=None, val2 = None,
-    op = None): # <= select layer by att
+    op = None):
+    """ creates a table indexed by supplied field and
+    1 or 2 attributes for that field.
+    """
+    # <= select layer by att
         import pandas as pd
         self.in_df = in_df
         self.field = field
@@ -154,7 +158,12 @@ class arcno():
         else:
             print('input df')
 
-    def GetCount_management(self):  # <= get count
+    def GetCount_management(self):  # needs work
+    """ counts rows of supplied object?
+    or count rows of internal table (class attribute?)
+    """
+
+
         if self.exist==False:
 
             return int(0)
@@ -171,7 +180,6 @@ class arcno():
     def AddJoin_management(self,
     in_df,df2,right_on=None,left_on=None):
         import pandas as pd
-
         d={}
 
         d[self.right_on] = right_on
@@ -190,3 +198,46 @@ class arcno():
                 self.temp_table=self.in_df.merge(self.df2,right_on=d[self.right_on], left_on=d[self.left_on])
             except:
                 print('field or fields invalid')
+
+    def AddField_management(self, in_df, newfield):
+        """ adds empty field within 'in_df' with fieldname
+        supplied in the argument
+        """
+        self.in_df = in_df
+        self.newfield = newfield
+
+        self.in_df[f'{self.newfield}'] = pd.Series()
+
+    def RemoveJoin_management(self):
+        """ creates deep copy of original dataset
+        and joins any new fields product of previous
+        right hand join
+        """
+        pass
+
+    def MakeFeatureLayer_management(self):
+        """ may be similar to create table view
+        """
+
+
+arcno = arcno()
+arcno.MakeTableView_management('tblGapHeader')
+gapheader=arcno.temp.copy(deep=True)
+
+arcno.MakeTableView_management('tblLines')
+tbllines = arcno.temp.copy(deep=True)
+
+arcno.AddJoin_management(gapheader,tbllines, left_on="LineKey", right_on="LineKey")
+arcno.temp_table
+gapheaderview = arcno.temp_table.copy(deep=True)
+
+arcno.AddField_management(gapheaderview,'PlotID')
+
+
+df = arcno.temp.copy(deep=True)
+
+df.columns
+
+
+arcno.AddField_management(df,'something')
+df['something']
