@@ -2,16 +2,6 @@ import pandas as pd
 import os
 from arcnah import arcno
 
-# def fun1(arg):
-#     print(f'{arg}')
-#
-# def fun2(arg):
-#     print(arg)
-#
-# type(fun1('something'))
-#
-# type(fun2('something'))
-
 """
 directories
 """
@@ -51,106 +41,53 @@ print(arcno.uniq)
 spgen = arcno.temp.copy(deep=True)
 spgen.columns
 
-# getOutput
-# import pandas as pd
-# pd.merge(df,dff,on='RecKey',how='outer')
-# pd
-#
-# 1807121252394813
-#
-# import pandas as pd
-# from arcnah import arcno
-# arcno = arcno()
-# # ind=[1807121252394813,180712125342201]
-# df1 = pd.DataFrame({'employee': ['Bob', 'Jake', 'Lisa', 'Sue'],
-#                     'group': ['Accounting', 'Engineering', 'Engineering', 'HR']})
-# df2 = pd.DataFrame({'employee': ['Lisa', 'Bob', 'Jake', 'Sue'],
-#                     'hire_date': [2004, 2008, 2012, 2014]})
-# display('df1', 'df2')
-# df = arcno.temp
-# dff = arcno.temp
-# df1 = df[0:9]
-# df2 = df[10:21]
-# pd.concat([df1,df2])
-# number =180712125342201
-# print(df['RecKey']==f'{number}')
-# arcno.GetCount_management()
-# arcno.AddJoin_management(df1,df2,'groups','')
-# arcno.temp_table
-#
-#
-# df3 = arcno.temp_table
-#
-# df4 = pd.DataFrame({'group': ['Accounting', 'Engineering', 'HR'],
-#                     'supervisor': ['Carly', 'Guido', 'Steve']})
-#
-# from arcnah import arcno
-# arcno = arcno()
-# arcno.MakeTableView_management('tblGapDetail')
-# df = arcno.temp
-# type(arcno.temp)
-# arcno.temp.columns
-# arcno.temp
-# arcno.temp2
-# arcno.SelectLayerByAttribute_management(df, "RecKey", 1807121252394813, 180712125342201)
-# arcno.temp.shape[0]
-# arcno.temp
-# arcno.
-#
-# arcno.uniq
-# fulldf = arcno.temp
-#
-# # 1807121252394813
-# firstdf = arcno.temp
-#
-# # 180712125342201
-#
-# seconddf = arcno.temp
-#
-# index1 = fulldf['RecKey'].str.contains('1807121252394813')
-# temp = fulldf[index1]
-#
-# index2 = fulldf['RecKey'].str.contains('180712125342201')
-# temp2 = fulldf[index2]
-#
-# import pandas as pd
-# frames = [temp,temp2]
-# temp = pd.concat(frames)
-#
-#
-#
-#
-#
-#
-#
-# str = f'{os.path.basename(listDIMAs[1])[:-6]}'
-# str
+for file in os.listdir(dirDIMAs):
+    if file.endswith(".mdb"):
+        listDIMAs.append(dirDIMAs + "\\" + file)
 mdbs = listDIMAs
-mdbs[1]
-arcno.MakeTableView_management("tblGapDetail",'C:\\Users\\kbonefont.JER-PC-CLIMATE4\\Desktop\\Some_data\\db.mdb')
+
 arcno.temp
 from arcnah import arcno
 arcno = arcno()
-arcno.MakeTableView_management('tblGapDetail', mdbs[0])
+arcno.MakeTableView_management('tblGapHeader', mdbs[1])
 df1 = arcno.temp.copy(deep=True)
 arcno.MakeTableView_management('tblGapDetail', mdbs[1])
 df2 = arcno.temp.copy(deep=True)
+
+df1.shape # 28 rows, 41 cols
+
+df2.shape
+
+
+arcno.AddJoin_management(df1, df2, left_on = 'RecKey', right_on = 'RecKey')
+arcno.temp_table
+
+
+
+
+
 arcno.MakeTableView_management('tblGapDetail', mdbs[2])
 df3 = arcno.temp.copy(deep=True)
-arcno.MakeTableView_management('tblGapDetail', mdbs[3])
+arcno.MakeTableView_management('tblPlotNotes', mdbs[3])
 df4 = arcno.temp.copy(deep=True)
 arcno.SelectLayerByAttribute_management(arcno.temp, 'DBKey')
-
+df1.columns
+df2.columns
 tempFL = arcno.temp.copy(deep=True)
 
-arcno.AddJoin_management(df3, df2, left_on = 'RecKey', right_on = 'RecKey')
+
 for each in df3.RecKey:
     print(each in df2.RecKey)
 [print(each in df2.RecKey) for each in df3.RecKey if each is not None]
 
 
 
-arcno.temp_table
+arcno.temp_table.shape
+
+arcno.SelectLayerByAttribute_management(arcno.temp_table, 'RecKey')
+arcno.uniq
+
+arcno.temp
 
 
 
@@ -161,18 +98,7 @@ df2 = pd.concat([pd.DataFrame({k:[] for k in df.columns}), None, None])
 df2.shape
 
 
-# for val in arcno.temp:
-#
-# ind in arcno.temp['RecKey']
-# [arcno.temp[i] for i in ind]
-# [ind not in row[1] for row in arcno.temp]
-# arcno.uniq
-# arcno.temp.shape[0]
-# arcno.GetCount_management()
-# for table in tableList:
-#     print(table)
-#     if stopFlag == 0:
-#         print(arcno.MakeTableView_management(self=arcno,in_table=table))
+
 
 for i in ind:
     arcno.temp[i]
@@ -186,7 +112,7 @@ for file in os.listdir(dirDIMAs):
 for inDIMA in listDIMAs:
     # if one DIMA fails go on to the next one
     stopFlag = 0
-    print ("\nStarting DIMA - " + inDIMA)
+    print ("\n1. Starting DIMA - " + inDIMA)
     print ("   Starting Dups check")
 
     for table in tableList:
@@ -198,10 +124,12 @@ for inDIMA in listDIMAs:
 
             str = f'{os.path.basename(listDIMAs[1])[:-6]}'
             tempFL = arcno.temp.copy(deep=True)
-            arcno.SelectLayerByAttribute_management (tempFL, "DBKey", str)
+            arcno.SelectLayerByAttribute_management(tempFL, "DBKey", str)
             # print("Diff: ",tempFL.shape[0]-arcno.temp.shape[0])
 
+
             dimaCount =  arcno.GetCount_management(arcno.temp)
+
 
             if dimaCount > 0:
                 print("      " + table + " - ERROR Records with the same or similar DBKey found!")
@@ -211,18 +139,22 @@ for inDIMA in listDIMAs:
                 continue
             else:
                 print("      " + table + " - No Dups found")
-            tempFL = arcno.MakeTableView_management(table,inDIMA)
+
             # tempFL = arcno.temp
             if not table in appendTables:
+                for dims in listDIMAs:
+                    arcno.MakeTableView_management(table,dims)
+                    print("\n**** CHECK PER TABLE, SIZE:",arcno.temp.shape,"****\n")
+                    print("**** TEMPFL's SIZE:",tempFL.shape,"****\n")
 
-                arcno.AddJoin_management(tempFL,arcno.temp,left_on=tableList[table],right_on=tableList[table])
+                    arcno.AddJoin_management(tempFL,arcno.temp,left_on=tableList[table],right_on=tableList[table])
 
-                print(arcno.temp_table.shape) # first join tempfl + temp
+                    print("! FINAL JOIN SIZE:",arcno.temp_table.shape,"!") # first join tempfl + temp
 
                 if arcno.temp_table.shape[0]!=0:
                     arcno.SelectLayerByAttribute_management(arcno.temp_table, tableList[table],999999999,888888888)
 
-                    print(arcno.temp.shape)
+                    print("REAL FINAL SIZE:",arcno.temp.shape)
                     joinedCount =
                 arcno.SelectLayerByAttribute_management(temp_table, tempfield,888888888,op='<>')
                 tmp2 = arcno.temp

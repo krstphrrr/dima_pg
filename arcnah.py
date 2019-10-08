@@ -72,7 +72,7 @@ class arcno():
             con = pyodbc.connect(mdb_string)
             cur = con.cursor()
             query = 'SELECT * FROM "{table}"'.format(table=self.in_table)
-            print("used query:"+query)
+            print("2. used query:"+query)
             self.temp = pd.read_sql(query,con)
         except Exception as e:
             print(e)
@@ -90,31 +90,31 @@ class arcno():
         self.val2 = val2
 
         if all(self.in_df):
-            print("df detected")
+            print("3. df detected")
             try:
-                print("starting try..")
+                print("4. starting try..")
                 if self.field in self.in_df.columns:
-                    print("field found in df columns")
-            # if there's a value to look up, index by it
+                    print("5. field found in df columns")
+                    # if there's a value to look up, index by it
                     if val1 is not None and type(val1) == str and val2 is None:
 
                         if op is not None:
 
-                            print("val1 = 1, val2 = 0, op = 1, type = str")
+                            print("6. val1 = 1, val2 = 0, op = 1, type = str")
                             index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
                             self.temp= self.in_df[~index]
                             self.exist=True
 
                         else:
-                            print("val1 = 1, val2 = 0, op = 0, type = str")
+                            print("6. val1 = 1, val2 = 0, op = 0, type = str")
                             index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
                             self.temp= self.in_df[index]
                             self.exist=True
 
-            # if there's a val2, join to df indexed by val1 (first filter)
+                    # if there's a val2, join to df indexed by val1 (first filter)
                     elif val1 is not None and type(val1) == str and val2 is not None:
                         if op is not None:
-                            print("val1 = 1, val2 = 1, op = 1, val1 = str")
+                            print("6. val1 = 1, val2 = 1, op = 1, val1 = str")
                             index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
                             self.t1= self.in_df[~index]
                             index2 = self.in_df[f'{self.field}'].str.contains(f'{self.val2}')
@@ -124,7 +124,7 @@ class arcno():
                             self.exist=True
 
                         else:
-                            print("val1 = 1, val2 = 1, op = 0, val1 = str")
+                            print("6. val1 = 1, val2 = 1, op = 0, val1 = str")
                             index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
                             self.t1= self.in_df[index]
                             index2 = self.in_df[f'{self.field}'].str.contains(f'{self.val2}')
@@ -135,20 +135,20 @@ class arcno():
 
                     elif val1 is not None and type(val1) == int and val2 is None:
                         if op is not None:
-                            print("val1 = 1, val2 = 0, op = 1, type = int")
+                            print("6. val1 = 1, val2 = 0, op = 1, type = int")
                             index= self.in_df[f'{self.field}']==f'{self.val1}'
                             self.temp= self.in_df[~index]
                             self.exist=True
 
                         else:
-                            print("val1 = 1, val2 = 0, op = 0, type = int")
+                            print("6. val1 = 1, val2 = 0, op = 0, type = int")
                             index= self.in_df[f'{self.field}']==f'{self.val1}'
                             self.temp= self.in_df[index]
                             self.exist=True
 
                     elif val1 is not None and type(val1) == int and val2 is not None:
                          if op is not None:
-                             print("val1 = 1, val2 = 1, op = 1, type = int")
+                             print("6. val1 = 1, val2 = 1, op = 1, type = int")
                              index = self.in_df[f'{self.field}']==f'{self.val1}'
                              self.t1 = self.in_df[~index]
                              index2 = self.in_df[f'{self.field}']==f'{self.val2}'
@@ -158,7 +158,7 @@ class arcno():
                              self.exist=True
 
                          else:
-                             print("val1 = 1, val2 = 1, op = 0, type = int")
+                             print("6. val1 = 1, val2 = 1, op = 0, type = int")
                              index = self.in_df[f'{self.field}']==f'{self.val1}'
                              self.t1 = self.in_df[index]
                              index2 = self.in_df[f'{self.field}']==f'{self.val2}'
@@ -169,14 +169,14 @@ class arcno():
 
                 # else if there's no value to look up, print unique values in supplied     field
                     else:
-                        print('field exists; input 1 or 2 values to index table by')
+                        print('5. field exists; input 1 or 2 values to index table by')
                         exec(f'self.uniq = self.temp.{self.field}.unique()')
                         self.exist=False
 
             # else if theres not value to look up and field does not exist
             # within table, return warning
                 else:
-                    print("field not found")
+                    print("5. field not found, returning empty table")
                     self.temp = pd.concat([pd.DataFrame({k:[]for k in self.temp.columns}), None, None])
 
 
@@ -185,7 +185,7 @@ class arcno():
                 print(e)
                 self.exist=False
         else:
-            print('input df')
+            print('3. input df, cannot create table')
 
     def GetCount_management(self, in_df):  # needs work
         """ counts rows of supplied object?
@@ -223,18 +223,27 @@ class arcno():
 
         self.in_df = in_df
         self.df2 = df2
-        if self.right_on==self.left_on:
-            try:
-                i
-                self.temp_table = self.in_df.merge(self.df2, on = d[self.right_on])
-            except:
-                print('field or fields invalid')
 
+        if self.right_on==self.left_on and len(self.in_df.columns)==len(self.df2.columns):
+            try:
+                frames = [self.in_df, self.df2]
+                self.temp_table = pd.concat(frames)
+            except Exception as e:
+                print(e)
+                print('1. field or fields invalid' )
+        elif self.right_on==self.left_on and len(self.in_df.columns)!=len(self.df2.columns):
+            try:
+                # frames = [self.in_df, self.df2]
+                self.temp_table = self.in_df.merge(self.df2, on = d[self.right_on], how='inner')
+            except Exception as e:
+                print(e)
+                print('2. field or fields invalid')
         else:
             try:
                 self.temp_table=self.in_df.merge(self.df2,right_on=d[self.right_on], left_on=d[self.left_on])
-            except:
-                print('field or fields invalid')
+            except Exception as e:
+                print(e)
+                print('3. field or fields invalid')
 
     def AddField_management(self, in_df, newfield):
         """ adds empty field within 'in_df' with fieldname
@@ -257,24 +266,12 @@ class arcno():
         """
 
 
-# arcno = arcno()
-# arcno.MakeTableView_management('tblGapHeader')
-# gapheader=arcno.temp.copy(deep=True)
-#
-# arcno.MakeTableView_management('tblLines')
-# tbllines = arcno.temp.copy(deep=True)
-#
-# arcno.AddJoin_management(gapheader,tbllines, left_on="LineKey", right_on="LineKey")
-# arcno.temp_table
-# gapheaderview = arcno.temp_table.copy(deep=True)
-#
-# arcno.AddField_management(gapheaderview,'PlotID')
-#
-#
-# df = arcno.temp.copy(deep=True)
-#
-# df.columns
-#
-#
-# arcno.AddField_management(df,'something')
-# df['something']
+"""
+Starting DIMA - C:\\Users\\kbonefont.JER-PC-CLIMATE4\\Desktop\\Some_data\\db.mdb
+   Starting Dups check
+used query:SELECT * FROM "tblGapDetail"
+df detected
+starting try..
+field not found
+use SelectLayerByAttribute first
+      tblGapDetail - No Dups found"""
