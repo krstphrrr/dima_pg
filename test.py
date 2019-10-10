@@ -28,7 +28,9 @@ listDIMAs = []
 
 from arcnah import arcno
 arcno = arcno()
-arcno.MakeTableView_management('tblGapDetail','C:\\Users\\kbonefont.JER-PC-CLIMATE4\\Desktop\\Some_data\\DIMA 5.2 as of 2017-07-18.mdb')
+arcno.MakeTableView_management('tblLines','C:\\Users\\kbonefont.JER-PC-CLIMATE4\\Desktop\\Some_data\\DIMA 5.2 as of 2017-07-18.mdb')
+
+arcno.temp
 str = f'{os.path.basename(listDIMAs[1])[:-6]}'
 fulldf = arcno.temp.copy(deep=True)
 
@@ -149,12 +151,12 @@ for inDIMA in listDIMAs:
 
                     arcno.AddJoin_management(tempFL,arcno.temp,left_on=tableList[table],right_on=tableList[table])
 
-                    print("! FINAL JOIN SIZE:",arcno.temp_table.shape,"!") # first join tempfl + temp
+                    print("! FINAL JOIN SIZE:",arcno.temp_table.shape,"! \n \n") # first join tempfl + temp
 
                 if arcno.temp_table.shape[0]!=0:
                     arcno.SelectLayerByAttribute_management(arcno.temp_table, tableList[table],999999999,888888888)
 
-                    print("REAL FINAL SIZE:",arcno.temp.shape)
+                    print("REAL FINAL SIZE:",arcno.temp.shape,"\n \n \n \n")
                     joinedCount =
                 arcno.SelectLayerByAttribute_management(temp_table, tempfield,888888888,op='<>')
                 tmp2 = arcno.temp
