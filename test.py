@@ -28,82 +28,25 @@ listDIMAs = []
 
 from arcnah import arcno
 arcno = arcno()
-arcno.MakeTableView_management('tblLines','C:\\Users\\kbonefont.JER-PC-CLIMATE4\\Desktop\\Some_data\\DIMA 5.2 as of 2017-07-18.mdb')
+arcno.MakeTableView_management('tblLines','C:\\Users\\kbonefont.JER-PC-CLIMATE4\\Desktop\\Some_data\\NM_TaosFO_LUP_2018_5-3b_01.mdb')
 
-arcno.temp
-str = f'{os.path.basename(listDIMAs[1])[:-6]}'
-fulldf = arcno.temp.copy(deep=True)
+any(arcno.temp.where(arcno.temp.iloc[2]==888888888))
+arcno.SelectLayerByAttribute_management(arcno.temp,'LineKey',999999999,888888888)
 
-'ok' in fulldf['RecKey']
-'ok' in fulldf.RecKey
-arcno.SelectLayerByAttribute_management(fulldf, 'RecKey',4)
-arcno.temp.RecKey
-arcno.SelectLayerByAttribute_management(arcno.temp, 'RecKey',1707260956495950)
-print(arcno.uniq)
-spgen = arcno.temp.copy(deep=True)
-spgen.columns
+for row in range(0,arcno.temp.shape[0]):
+    print(row)
 
-for file in os.listdir(dirDIMAs):
-    if file.endswith(".mdb"):
-        listDIMAs.append(dirDIMAs + "\\" + file)
-mdbs = listDIMAs
+for i,row in arcno.temp.iteritems():
+    print(i,row)
 
-arcno.temp
-from arcnah import arcno
-arcno = arcno()
-arcno.MakeTableView_management('tblGapHeader', mdbs[1])
-df1 = arcno.temp.copy(deep=True)
-arcno.MakeTableView_management('tblGapDetail', mdbs[1])
-df2 = arcno.temp.copy(deep=True)
+import numpy as np
+np.where(arcno.temp.applymap(lambda x:x==999999999))
+arcno.temp[( arcno.temp['LineKey']=='999999999')|(arcno.temp['LineKey']=='888888888')]
 
-df1.shape # 28 rows, 41 cols
+arcno.temp.iterrows
+for i in arcno.temp.iterrows:
+    print(i)
 
-df2.shape
-
-
-arcno.AddJoin_management(df1, df2, left_on = 'RecKey', right_on = 'RecKey')
-arcno.temp_table
-
-
-
-
-
-arcno.MakeTableView_management('tblGapDetail', mdbs[2])
-df3 = arcno.temp.copy(deep=True)
-arcno.MakeTableView_management('tblPlotNotes', mdbs[3])
-df4 = arcno.temp.copy(deep=True)
-arcno.SelectLayerByAttribute_management(arcno.temp, 'DBKey')
-df1.columns
-df2.columns
-tempFL = arcno.temp.copy(deep=True)
-
-
-for each in df3.RecKey:
-    print(each in df2.RecKey)
-[print(each in df2.RecKey) for each in df3.RecKey if each is not None]
-
-
-
-arcno.temp_table.shape
-
-arcno.SelectLayerByAttribute_management(arcno.temp_table, 'RecKey')
-arcno.uniq
-
-arcno.temp
-
-
-
-
-df = arcno.temp.copy(deep=True)
-import pandas as pd
-df2 = pd.concat([pd.DataFrame({k:[] for k in df.columns}), None, None])
-df2.shape
-
-
-
-
-for i in ind:
-    arcno.temp[i]
 """
 loop
 """

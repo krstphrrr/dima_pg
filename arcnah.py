@@ -102,13 +102,13 @@ class arcno():
 
                             print("6. val1 = 1, val2 = 0, op = 1, type = str")
                             index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
-                            self.temp= self.in_df[~index]
+                            self.temp_table = self.in_df[~index]
                             self.exist=True
 
                         else:
                             print("6. val1 = 1, val2 = 0, op = 0, type = str")
                             index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
-                            self.temp= self.in_df[index]
+                            self.temp_table = self.in_df[index]
                             self.exist=True
 
                     # if there's a val2, join to df indexed by val1 (first filter)
@@ -120,7 +120,7 @@ class arcno():
                             index2 = self.in_df[f'{self.field}'].str.contains(f'{self.val2}')
                             self.t2= self.in_df[~index2]
                             frames = [self.t1, self.t2]
-                            self.temp = pd.concat(frames) # <- join     of filtered df's
+                            self.temp_table = pd.concat(frames) # <- join     of filtered df's
                             self.exist=True
 
                         else:
@@ -130,41 +130,41 @@ class arcno():
                             index2 = self.in_df[f'{self.field}'].str.contains(f'{self.val2}')
                             self.t2 = self.in_df[index2]
                             frames = [self.t1, self.t2]
-                            self.temp = pd.concat(frames)
+                            self.temp_table = pd.concat(frames)
                             self.exist=True
 
                     elif val1 is not None and type(val1) == int and val2 is None:
                         if op is not None:
                             print("6. val1 = 1, val2 = 0, op = 1, type = int")
-                            index= self.in_df[f'{self.field}']==f'{self.val1}'
-                            self.temp= self.in_df[~index]
+                            index= self.in_df[f'{self.field}']==self.val1
+                            self.temp_table = self.in_df[~index]
                             self.exist=True
 
                         else:
                             print("6. val1 = 1, val2 = 0, op = 0, type = int")
                             index= self.in_df[f'{self.field}']==f'{self.val1}'
-                            self.temp= self.in_df[index]
+                            self.temp_table = self.in_df[index]
                             self.exist=True
 
                     elif val1 is not None and type(val1) == int and val2 is not None:
                          if op is not None:
                              print("6. val1 = 1, val2 = 1, op = 1, type = int")
-                             index = self.in_df[f'{self.field}']==f'{self.val1}'
+                             index = self.in_df[f'{self.field}']==self.val1
                              self.t1 = self.in_df[~index]
-                             index2 = self.in_df[f'{self.field}']==f'{self.val2}'
+                             index2 = self.in_df[f'{self.field}']==self.val2
                              self.t2 = self.in_df[~index2]
                              frames = [self.t1, self.t2]
-                             self.temp = pd.concat(frames)
+                             self.temp_table = pd.concat(frames)
                              self.exist=True
 
                          else:
                              print("6. val1 = 1, val2 = 1, op = 0, type = int")
-                             index = self.in_df[f'{self.field}']==f'{self.val1}'
+                             index = self.in_df[f'{self.field}']==self.val1
                              self.t1 = self.in_df[index]
-                             index2 = self.in_df[f'{self.field}']==f'{self.val2}'
+                             index2 = self.in_df[f'{self.field}']==self.val2
                              self.t2 = self.in_df[index2]
                              frames = [self.t1, self.t2]
-                             self.temp = pd.concat(frames)
+                             self.temp_table = pd.concat(frames)
                              self.exist=True
 
                 # else if there's no value to look up, print unique values in supplied     field
@@ -177,7 +177,7 @@ class arcno():
             # within table, return warning
                 else:
                     print("5. field not found, returning empty table")
-                    self.temp = pd.concat([pd.DataFrame({k:[]for k in self.temp.columns}), None, None])
+                    self.temp_table = pd.concat([pd.DataFrame({k:[]for k in self.temp.columns}), None, None])
 
 
 
@@ -262,8 +262,18 @@ class arcno():
         pass
 
     def MakeFeatureLayer_management(self):
-        """ may be similar to create table view
+        """ may be similar to screate table view
         """
+        pass
+
+    def GetParameterAsText(self,string):
+        """ return stringified element
+
+        """
+
+        self.string = f'{string}'
+        return self.string
+
 
 
 """
