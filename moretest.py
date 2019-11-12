@@ -1,68 +1,56 @@
+import os, pandas as pd
+from os import listdir,getcwd, chdir
+from os.path import normpath, join
 
-class A:
-    def ping(self):
-        print('ping:', self)
+from methods.make_table import Table
+from methods.select import Select_tbl
+from functools import reduce
+getcwd()
 
-class B(A):
-    def pong(self):
-        print('pong:', self)
-
-class C(A):
-    def pong(self):
-        print('PONG:', self)
-
-class D(B, C):
-    def ping(self):
-        super().ping() # A
-        print('post-ping:', self)
-    def pingpong(self):
-        self.ping() # D (calling A:A is superclass)
-        super().ping() # A
-        self.pong() # B
-        super().pong() # B
-        C.pong(self) # C explicit call to specific superclass
-
-a=A()
-a.ping()
-a
+df1 = pd.DataFrame({'a':['one','two'],'b':['three','four']})
 
 
+df1.iloc[[0,1],[0]]
+
+for i in [a for a in df1.iloc[[0,1],[1]].values]:
+    print(i)
+df1.values
+
+for item in df1.values:
+    for i in item:
+        print(i)
+[i for i in item for item in df1.values]
+
+for a in df1.iloc[[0,1],[1]].values:
+    for i in a:
+        print(i)
 
 
-b = B()
-b.pong()
-b.ping()
+lambda a,b: return join(a,b)
+reduce(lambda a,b:a+b)
 
-c = C()
-c.pong()
-c.ping()
+df1.iloc[[0,1],[0]].combine(df1.iloc[[0,1],[1]], lambda a,b:join(f'{a}',f'{b}'))
 
-d = D()
-
-d.pong()
-C.pong(d)
-A.ping(d)
-d.ping()
+df1['comb'] = df1['a'].map(str)
 
 
-d.pingpong()
-tkinter.Text.__mro__
-def print_mro(cls):
-    print(', '.join(c.__name__ for c in cls.__mro__))
-import tkinter
-print_mro(tkinter.Text)
+df1['a'].map(str)+df1['b']
 
 
 
-
-
-
-
+path = normpath(r"C:\Users\kbonefont\Desktop\Some_data\NM_TaosFO_LUP_2018_5-3b_01.mdb")
+path
+Table('tblLines',normpath(r"C:\Users\kbonefont\Desktop\Some_data\NM_TaosFO_LUP_2018_5-3b_01.mdb")).temp
 
 arcno = arcno()
-arcno.make('tblLines','C:\\Users\\kbonefont.JER-PC-CLIMATE4\\Desktop\\Some_data\\NM_TaosFO_LUP_2018_5-3b_01.mdb')
+
+arcno.MakeTable('tblLines',path)
 arcno.temp
-arcno.select(arcno.temp,'1808051039437030','1808050843012839','1808051155204941',field='LineKey')
+
+arcno.Select(arcno.temp,field='LineKey')
+
+
+arcno.select(arcno.temp,'1808051039437030','1808050843012839',field='LineKey')
 arcno.temp_table
 """
 in_df = type dataframe
@@ -85,20 +73,20 @@ import operator
 df[operator.invert(index)]
 df
 basicfilter=basicfilter()
-basicfilter.select(df,'LineKey','1808050843012839')
+basicfilter.select(df,'LineKey',~'1808050843012839')
 basicfilter.tempdf
 class basicfilter():
     tempdf = None
 
     def __init__(self, indf=None,field=None,*values):
-        import os, pandas as pd
+
         self.indf = indf
         self.field = field
         self.values = values
         self.index = None
 
     def select(self,indf,field,*values):
-        import os, pandas as pd
+
         self.indf = indf
         self.field = field
         self.values = values
@@ -119,8 +107,7 @@ class basicfilter():
             self.tempdf = pd.concat(dfset)
 
     def __invert__(self):
-        import operator
-        return operator.invert(self.index)
+
 
 
 
@@ -171,7 +158,8 @@ class test():
 
 
     def __invert__(self):
-        return self.apply("invert",self)
+        if self.in_df is not None:
+            return ~self.in_df
 
 class arcno():
     temp = None
@@ -189,31 +177,33 @@ class arcno():
     t2 = None
     # in_table = None
 
-
     def __init__(self, *args, **kwargs):
         self._values = args
         self._keyvals = dict(kwargs)
 
-    def make(self,in_table,whichdima):
+    def __invert__(self):
+        if self.in_df is not None:
+            return ~self.in_df
+
+    def MakeTable(self,in_table,whichdima):
         """ connects to ms access mdb, selects a table
         and copies it to a df
         """
-        import pyodbc, pandas as pd
         self.in_table = in_table
         self.whichdima = whichdima
 
         try:
-            MDB = self.whichdima
-            DRV = '{Microsoft Access Driver (*.mdb, *.accdb)}'
-            mdb_string = r"DRIVER={};DBQ={};".format(DRV,MDB)
-
-            con = pyodbc.connect(mdb_string)
-            cur = con.cursor()
-            query = 'SELECT * FROM "{table}"'.format(table=self.in_table)
-            print("dataframe made on arcno.temp")
-            self.temp = pd.read_sql(query,con)
+            self.temp = Table(self.in_table, self.whichdima).temp
         except Exception as e:
             print(e)
+    # def Select(self,in_df,*vals,field=None):
+    #     self.in_df = in_df
+    #     self.field = field
+    #     self.vals = vals
+    #     try:
+    #         self.temp_table = Select_tbl(self.in_df, self.vals, self.field)
+    #     except Exception as e:
+    #         print(e)
 
     def select(self, in_df,*vals, field = None):
         """
