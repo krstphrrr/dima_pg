@@ -1,13 +1,13 @@
 import pandas as pd
+import pyodbc
 
-
+from os import listdir,getcwd, chdir
 # replacing ap's gdb methods with pandas alternatives
 # if arcpy creates a temporary view in gdb, arcno creates dataframe within its temp class attribute
 ##
 # if arcpy selects certain columns from temp view, arcno selects certain columns from df and returns them
 # if arcpy counts rows of temp view filtered with select, arcno counts rows of dataframe filtered through if statement dependent on a methods argument
-import pyodbc
-from temp_tools import msconfig
+
 # iris = pd.read_csv(r'C:\Users\kbonefont.JER-PC-CLIMATE4\Desktop\iris.csv')
 #
 # set(pd.Series(iris.columns))
