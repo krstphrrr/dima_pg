@@ -8,30 +8,6 @@ import pandas as pd
 # if arcpy counts rows of temp view filtered with select, arcno counts rows of dataframe filtered through if statement dependent on a methods argument
 import pyodbc
 from temp_tools import msconfig
-# iris = pd.read_csv(r'C:\Users\kbonefont.JER-PC-CLIMATE4\Desktop\iris.csv')
-#
-# set(pd.Series(iris.columns))
-#
-# class df_sets:
-#     _df = None
-#     _cols = None
-#     def __init__(self,input):
-#         self.input = input
-#         self._cols = set(pd.Series(input.columns))
-#
-
-
-#
-# param = msconfig()
-# con = pyodbc.connect(**param)
-# cur = con.cursor()
-# full_tbl_list = []
-# for tbl in cur.tables():
-#     if "tbl" in tbl[2]:
-#         cur1 = con.cursor()
-#         if tbl.table_type == "TABLE":
-#             full_tbl_list += [tbl.table_name,]
-#
 
 
 class arcno():
