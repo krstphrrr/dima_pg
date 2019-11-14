@@ -17,6 +17,95 @@ from utils import Acc
    dataframe filtered through if statement dependent on a methods argument
 
 """
+path = path = normpath(r"C:\Users\kbonefont\Desktop\Some_data\NM_TaosFO_LUP_2018_5-3b_01.mdb")
+arc = arcno(path)
+tblLPIDetail, tblLPIHeader, tblLines, tblPlots, tblSites
+header = arc.MakeTableView_management('tblLPIHeader', path)
+lpi_detail = arc.MakeTableView_management('tblLPIDetail', path)
+lines = arc.MakeTableView_management('tblLines', path)
+plots = arc.MakeTableView_management('tblPlots', path)
+
+plots
+
+for i in plots.columns:
+    if (i.find('date')!=-1) or (i.find('Date')!=-1):
+        print(i)
+header.shape[0]
+lpi_detail.shape[0]
+head_detail = arc.AddJoin_management(header, lpi_detail, 'RecKey')
+
+head_detail.shape[0]
+
+head_det_lines = arc.AddJoin_management(head_detail, lines,'LineKey','LineKey')
+
+head_det_lines.shape[0]
+
+head_det_lines_plot = arc.AddJoin_management(head_det_lines, plots, 'PlotKey')
+head_det_lines_plot.shape
+
+for i in head_det_lines_plot.columns:
+    if (i.find('date')!=-1) or (i.find('Date')!=-1):
+        print(i)
+
+for i in head_det_lines_plot.FormDate:
+    print(i)
+
+head_det_lines_plot = arc.AddJoin_management(head_det_lines, plots, 'PlotKey', 'PlotKey')
+head_det_lines_plot.shape
+
+head_pk = arc.CalculateField_management(head_det_lines_plot, "PrimaryKey", "PlotKey", "FormDate")
+len(head_pk.PrimaryKey.unique())
+
+plt_pk = arc.CalculateField_management(plots, 'PrimaryKey', 'PlotKey','FormDate')
+plot_line = arc.AddJoin_management(plots,lines, 'PlotKey','PlotKey')
+
+plot_line_det = arc.AddJoin_management(plot_line, head_detail, 'LineKey', 'LineKey')
+
+plot_line_det_head = arc.AddJoin_management(plot_line_det, header, 'RecKey')
+
+for i in plot_line_det_head.FormDate:
+    print(i)
+
+plot_pk = arc.CalculateField_management(plot_line_det_head, "PrimaryKey", "PlotKey", "FormDate")
+len(plot_pk.PrimaryKey.unique())
+
+df = new_pk(path)
+def new_pk(dimapath):
+    header = arc.MakeTableView_management('tblLPIHeader', dimapath)
+    lpi_detail = arc.MakeTableView_management('tblLPIDetail', dimapath)
+    lines = arc.MakeTableView_management('tblLines', dimapath)
+    plots = arc.MakeTableView_management('tblPlots', dimapath)
+
+    plot_line = arc.AddJoin_management(plots,lines, 'PlotKey','PlotKey')
+    plot_line_det = arc.AddJoin_management(plot_line, head_detail, 'LineKey', 'LineKey')
+    plot_line_det_head = arc.AddJoin_management(plot_line_det, header, 'RecKey')
+    plot_pk = arc.CalculateField_management(plot_line_det_head, "PrimaryKey", "PlotKey", "FormDate")
+
+    return plot_pk
+
+
+def to_plot(plottable, dimapath):
+    fulldf = new_pk(dimapath)
+    arc = arcno()
+    arc.isolateFields(fulldf, 'PlotKey','PrimaryKey')
+    plot_tmp = arc.isolates
+    plt = plot_tmp.rename(columns={'PlotKey':'PlotKey2'}).copy(deep=True)
+    # plot_pk = pd.concat([plottable,plot_tmp], axis=1, join='inner' )
+    plt = plt.drop_duplicates(['PlotKey2'])
+    print(plt.columns)
+    print(plottable.columns)
+    # plot_pk = plt.merge(plottable, on=[plt.PlotKey2,plottable.PlotKey])
+    plot_pk = arc.AddJoin_management(plt, plottable,'PlotKey','PlotKey2')
+    # plot_pk.rename(columns={plot_pk.columns[-2]:'PlotKey2'}, inplace=True)
+    plot_pk.drop('PlotKey2', axis=1, inplace=True)
+    return plot_pk
+
+"""
+NEED TO GET RID OF PESKY DUPLICATE COLUMN
+"""
+PLOT = to_plot(plots,path)
+PLOT.PrimaryKey
+
 
 
 
@@ -168,6 +257,7 @@ class arcno():
         """ creates a new dataframe with submitted
         fields.
         """
+        self.in_df = in_df
         self.fields = fields
         self.isolates =self.in_df[[f'{field}' for field in self.fields]]
         return self.isolates
