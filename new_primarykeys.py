@@ -2,7 +2,7 @@ from arcnah import arcno
 
 """
 None-BSNE data: 'PlotKey' + 'FormDate' on most atomic level
-BSNE data: 'PlotKey' + 'collectDate' on most atomic level
+BSNE data: 'PlotKey' + 'collectDate'
 """
 """
 Check tables inside the dima
