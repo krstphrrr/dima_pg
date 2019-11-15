@@ -4,8 +4,6 @@ from os.path import normpath, join
 from methods.make_table import Table
 from utils import Acc
 
-# from new_primarykeys import to_lines
-
 """
  replacing ap's gdb methods with pandas alternatives
 
@@ -19,94 +17,14 @@ from utils import Acc
    dataframe filtered through if statement dependent on a methods argument
 
 """
-path = normpath(r"C:\Users\kbonefont\Desktop\Some_data\NM_TaosFO_LUP_2018_5-3b_01.mdb")
-# arc = arcno(path)
-#
 
-
-#
-# for i in plots.columns:
-#     if (i.find('date')!=-1) or (i.find('Date')!=-1):
-#         print(i)
-# header.shape[0]
-# lpi_detail.shape[0]
-# head_detail = arc.AddJoin(header, lpi_detail, 'RecKey')
-#
-# head_detail.shape[0]
-#
-# head_det_lines = arc.AddJoin(head_detail, lines,'LineKey','LineKey')
-#
-# head_det_lines.shape[0]
-#
-# head_det_lines_plot = arc.AddJoin(head_det_lines, plots, 'PlotKey')
-# head_det_lines_plot.shape
-#
-# for i in head_det_lines_plot.columns:
-#     if (i.find('date')!=-1) or (i.find('Date')!=-1):
-#         print(i)
-#
-# for i in head_det_lines_plot.FormDate:
-#     print(i)
-#
-# head_det_lines_plot = arc.AddJoin(head_det_lines, plots, 'PlotKey', 'PlotKey')
-# head_det_lines_plot.shape
-#
-# head_pk = arc.CalculateField(head_det_lines_plot, "PrimaryKey", "PlotKey", "FormDate")
-# len(head_pk.PrimaryKey.unique())
-#
-# plt_pk = arc.CalculateField(plots, 'PrimaryKey', 'PlotKey','FormDate')
-# plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
-#
-# plot_line_det = arc.AddJoin(plot_line, head_detail, 'LineKey', 'LineKey')
-#
-# plot_line_det_head = arc.AddJoin(plot_line_det, header, 'RecKey')
-#
-# for i in plot_line_det_head.FormDate:
-#     print(i)
-#
-# plot_pk = arc.CalculateField(plot_line_det_head, "PrimaryKey", "PlotKey", "FormDate")
-# len(plot_pk.PrimaryKey.unique())
-#
-# df = new_pk(path)
-# test - no pk : tblLines
-# linespk = to_lines(lines,path)
-
-
-#
-# def new_pk(dimapath):
-#     arc = arcno()
-#     header = arc.MakeTableView('tblLPIHeader', dimapath)
-#     lpi_detail = arc.MakeTableView('tblLPIDetail', dimapath)
-#     lines = arc.MakeTableView('tblLines', dimapath)
-#     plots = arc.MakeTableView('tblPlots', dimapath)
-#     plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
-#     plot_line_det = arc.AddJoin(plot_line, head_detail, 'LineKey', 'LineKey')
-#     plot_line_det_head = arc.AddJoin(plot_line_det, header, 'RecKey')
-#     plot_pk = arc.CalculateField(plot_line_det_head, "PrimaryKey", "PlotKey", "FormDate")
-#
-#     return plot_pk
-#
-#
-#
-#
-# """
-# NEED TO GET RID OF PESKY DUPLICATE COLUMN
-# """
-# PLOT = to_plot(plots,path)
-# PLOT.PrimaryKey
-# PLOT.key_0
-# PLOT.PlotKey
-# len(plots.columns)
-# len(PLOT.columns)
-# which = PLOT.columns.difference(plots.columns)
-# dups = PLOT[PLOT.duplicated()]
 class arcno():
     tablelist = []
     isolates = None
 
     def __init__(self, whichdima = None):
         """ Initializes a list of tables in dima accessible on tablelist.
-        ex.
+        ex:
         arc = arcno(path_to_dima)
         arc.tablelist
         """
@@ -121,7 +39,7 @@ class arcno():
     def MakeTableView(self,in_table,whichdima):
         """ connects to Microsoft Access .mdb file, selects a table
         and copies it to a dataframe.
-        ex.
+        ex:
         arc = arcno()
         arc.MakeTableView('table_name', 'dima_path')
         """
@@ -133,7 +51,7 @@ class arcno():
         except Exception as e:
             print(e)
 
-    def SelectLayerByAttribute(self, in_df,*vals, field = None):
+    def SelectLayerByAttribute(self, in_df, *vals, field = None):
 
         import pandas as pd
         self.in_df = in_df
@@ -144,8 +62,8 @@ class arcno():
         def name(arg1,arg2):
             self.arg1 = arg1
             self.arg2 = arg2
-            import os
-            joined= os.path.join(self.arg1+self.arg2)
+
+            joined = os.path.join(self.arg1+self.arg2)
             return joined
 
         if all(self.in_df):
@@ -153,7 +71,8 @@ class arcno():
             try:
                 for val in self.vals:
                     index = self.in_df[f'{self.field}']==f'{val}'
-                    exec("%s = self.in_df[index]" % name(f'{self.field}',f'{val}'))
+                    exec("%s = self.in_df[index]" % name(f'{self.field}',
+                          f'{val}'))
                     dfset.append(eval(name(f'{self.field}',f'{val}')))
 
                 return pd.concat(dfset)
@@ -167,8 +86,7 @@ class arcno():
         self.in_df = in_df
         return self.in_df.shape[0]
 
-    def AddJoin(self,
-    in_df,df2,right_on=None,left_on=None):
+    def AddJoin(self, in_df,df2,right_on=None,left_on=None):
         """ inner join on two dataframes on 1 or 2 fields
         ex.
         arc = arcno()
@@ -185,23 +103,27 @@ class arcno():
         self.in_df = in_df
         self.df2 = df2
 
-        if self.right_on==self.left_on and len(self.in_df.columns)==len(self.df2.columns):
+        if self.right_on==self.left_on
+          and len(self.in_df.columns)==len(self.df2.columns):
             try:
                 frames = [self.in_df, self.df2]
                 return pd.concat(frames)
             except Exception as e:
                 print(e)
                 print('1. field or fields invalid' )
-        elif self.right_on==self.left_on and len(self.in_df.columns)!=len(self.df2.columns):
+        elif self.right_on==self.left_on
+          and len(self.in_df.columns)!=len(self.df2.columns):
             try:
                 # frames = [self.in_df, self.df2]
-                return self.in_df.merge(self.df2, on = d[self.right_on], how='inner')
+                return self.in_df.merge(self.df2,
+                 on = d[self.right_on], how='inner')
             except Exception as e:
                 print(e)
                 print('2. field or fields invalid')
         else:
             try:
-                return self.in_df.merge(self.df2,right_on=d[self.right_on], left_on=d[self.left_on])
+                return self.in_df.merge(self.df2,
+                right_on=d[self.right_on], left_on=d[self.left_on])
             except Exception as e:
                 print(e)
                 print('3. field or fields invalid')
@@ -210,7 +132,9 @@ class arcno():
         """ Creates a newfield by concatenating any number of existing fields
         ex.
         arc = arcno()
-        arc.CalculateField('dataframe_x', 'name_of_new_field', 'field_x', 'field_y','field_z')
+        arc.CalculateField('dataframe_x',
+                         'name_of_new_field',
+                         'field_x', 'field_y','field_z')
 
         field_x = 'red'
         field_y = 'blue'
@@ -222,7 +146,8 @@ class arcno():
         self.newfield = newfield
         self.fields = fields
 
-        self.in_df[f'{self.newfield}'] = (self.in_df[[f'{field}' for field in self.fields]].astype(str)).sum(axis=1)
+        self.in_df[f'{self.newfield}'] = (
+            self.in_df[[f'{field}' for field in self.fields]].astype(str)).sum(axis=1)
         return self.in_df
 
 
