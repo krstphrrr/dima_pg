@@ -1,198 +1,183 @@
 import pandas as pd
+from os import listdir,getcwd, chdir
+from os.path import normpath, join
+from methods.make_table import Table
+from utils import Acc
+
+# from new_primarykeys import to_lines
+
+"""
+ replacing ap's gdb methods with pandas alternatives
+
+ - if ap creates a temporary view in gdb, arcno creates dataframe within its
+   temp class attribute
+
+ - if ap selects certain columns from temp view, arcno selects certain columns
+   from df and returns them
+
+ - if ap counts rows of temp view filtered with select, arcno counts rows of
+   dataframe filtered through if statement dependent on a methods argument
+
+"""
+path = normpath(r"C:\Users\kbonefont\Desktop\Some_data\NM_TaosFO_LUP_2018_5-3b_01.mdb")
+# arc = arcno(path)
+#
 
 
-# replacing ap's gdb methods with pandas alternatives
-# if arcpy creates a temporary view in gdb, arcno creates dataframe within its temp class attribute
-##
-# if arcpy selects certain columns from temp view, arcno selects certain columns from df and returns them
-# if arcpy counts rows of temp view filtered with select, arcno counts rows of dataframe filtered through if statement dependent on a methods argument
-import pyodbc
-from temp_tools import msconfig
+#
+# for i in plots.columns:
+#     if (i.find('date')!=-1) or (i.find('Date')!=-1):
+#         print(i)
+# header.shape[0]
+# lpi_detail.shape[0]
+# head_detail = arc.AddJoin(header, lpi_detail, 'RecKey')
+#
+# head_detail.shape[0]
+#
+# head_det_lines = arc.AddJoin(head_detail, lines,'LineKey','LineKey')
+#
+# head_det_lines.shape[0]
+#
+# head_det_lines_plot = arc.AddJoin(head_det_lines, plots, 'PlotKey')
+# head_det_lines_plot.shape
+#
+# for i in head_det_lines_plot.columns:
+#     if (i.find('date')!=-1) or (i.find('Date')!=-1):
+#         print(i)
+#
+# for i in head_det_lines_plot.FormDate:
+#     print(i)
+#
+# head_det_lines_plot = arc.AddJoin(head_det_lines, plots, 'PlotKey', 'PlotKey')
+# head_det_lines_plot.shape
+#
+# head_pk = arc.CalculateField(head_det_lines_plot, "PrimaryKey", "PlotKey", "FormDate")
+# len(head_pk.PrimaryKey.unique())
+#
+# plt_pk = arc.CalculateField(plots, 'PrimaryKey', 'PlotKey','FormDate')
+# plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
+#
+# plot_line_det = arc.AddJoin(plot_line, head_detail, 'LineKey', 'LineKey')
+#
+# plot_line_det_head = arc.AddJoin(plot_line_det, header, 'RecKey')
+#
+# for i in plot_line_det_head.FormDate:
+#     print(i)
+#
+# plot_pk = arc.CalculateField(plot_line_det_head, "PrimaryKey", "PlotKey", "FormDate")
+# len(plot_pk.PrimaryKey.unique())
+#
+# df = new_pk(path)
+# test - no pk : tblLines
+# linespk = to_lines(lines,path)
 
 
+#
+# def new_pk(dimapath):
+#     arc = arcno()
+#     header = arc.MakeTableView('tblLPIHeader', dimapath)
+#     lpi_detail = arc.MakeTableView('tblLPIDetail', dimapath)
+#     lines = arc.MakeTableView('tblLines', dimapath)
+#     plots = arc.MakeTableView('tblPlots', dimapath)
+#     plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
+#     plot_line_det = arc.AddJoin(plot_line, head_detail, 'LineKey', 'LineKey')
+#     plot_line_det_head = arc.AddJoin(plot_line_det, header, 'RecKey')
+#     plot_pk = arc.CalculateField(plot_line_det_head, "PrimaryKey", "PlotKey", "FormDate")
+#
+#     return plot_pk
+#
+#
+#
+#
+# """
+# NEED TO GET RID OF PESKY DUPLICATE COLUMN
+# """
+# PLOT = to_plot(plots,path)
+# PLOT.PrimaryKey
+# PLOT.key_0
+# PLOT.PlotKey
+# len(plots.columns)
+# len(PLOT.columns)
+# which = PLOT.columns.difference(plots.columns)
+# dups = PLOT[PLOT.duplicated()]
 class arcno():
-    temp = None
-    string = None
-    uniq = None
-    frames = None
-    single_field = None
-    exist=None
-    temp_join=None
-    how = None
-    temp2 = None
-    temp_table = None
+    tablelist = []
+    isolates = None
 
-    t1 = None
-    t2 = None
-    # in_table = None
-    def __init__(self, in_table = None, in_df = None, right_on=None, left_on = None, whichdima = None):
-        self.in_table = in_table
-        self.in_df = in_df
-        self.right_on = right_on
-        self.left_on = left_on
-        self.whichdima = whichdima
-
-    def MakeTableView_management(self,in_table,whichdima):
-        """ connects to ms access mdb, selects a table
-        and copies it to a df
+    def __init__(self, whichdima = None):
+        """ Initializes a list of tables in dima accessible on tablelist.
+        ex.
+        arc = arcno(path_to_dima)
+        arc.tablelist
         """
-        import pyodbc, pandas as pd
+        self.whichdima = whichdima
+        if self.whichdima is not None:
+            cursor = Acc(self.whichdima).con.cursor()
+            for t in cursor.tables():
+                if t.table_name.startswith('tbl'):
+                    self.tablelist.append(t.table_name)
+
+
+    def MakeTableView(self,in_table,whichdima):
+        """ connects to Microsoft Access .mdb file, selects a table
+        and copies it to a dataframe.
+        ex.
+        arc = arcno()
+        arc.MakeTableView('table_name', 'dima_path')
+        """
         self.in_table = in_table
         self.whichdima = whichdima
 
         try:
-            MDB = self.whichdima
-            DRV = '{Microsoft Access Driver (*.mdb, *.accdb)}'
-            mdb_string = r"DRIVER={};DBQ={};".format(DRV,MDB)
-
-            con = pyodbc.connect(mdb_string)
-            cur = con.cursor()
-            query = 'SELECT * FROM "{table}"'.format(table=self.in_table)
-            print("2. used query:"+query)
-            self.temp = pd.read_sql(query,con)
+            return Table(self.in_table, self.whichdima).temp
         except Exception as e:
             print(e)
 
-    def SelectLayerByAttribute_management(self,
-    in_df, field = None, val1=None, val2 = None,
-    op = None):
-        """ creates a table indexed by supplied field and
-        1 or 2 attributes for that field.
-        """
+    def SelectLayerByAttribute(self, in_df,*vals, field = None):
+
         import pandas as pd
         self.in_df = in_df
         self.field = field
-        self.val1 = val1
-        self.val2 = val2
+        self.vals = vals
+
+        dfset = []
+        def name(arg1,arg2):
+            self.arg1 = arg1
+            self.arg2 = arg2
+            import os
+            joined= os.path.join(self.arg1+self.arg2)
+            return joined
 
         if all(self.in_df):
-            print("3. df detected")
+            print("dataframe exists")
             try:
-                print("4. starting try..")
-                if self.field in self.in_df.columns:
-                    print("5. field found in df columns")
-                    # if there's a value to look up, index by it
-                    if val1 is not None and type(val1) == str and val2 is None:
+                for val in self.vals:
+                    index = self.in_df[f'{self.field}']==f'{val}'
+                    exec("%s = self.in_df[index]" % name(f'{self.field}',f'{val}'))
+                    dfset.append(eval(name(f'{self.field}',f'{val}')))
 
-                        if op is not None:
-
-                            print("6. val1 = 1, val2 = 0, op = 1, type = str")
-                            index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
-                            self.temp_table = self.in_df[~index]
-                            self.exist=True
-
-                        else:
-                            print("6. val1 = 1, val2 = 0, op = 0, type = str")
-                            index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
-                            self.temp_table = self.in_df[index]
-                            self.exist=True
-
-                    # if there's a val2, join to df indexed by val1 (first filter)
-                    elif val1 is not None and type(val1) == str and val2 is not None:
-                        if op is not None:
-                            print("6. val1 = 1, val2 = 1, op = 1, val1 = str")
-                            index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
-                            self.t1= self.in_df[~index]
-                            index2 = self.in_df[f'{self.field}'].str.contains(f'{self.val2}')
-                            self.t2= self.in_df[~index2]
-                            frames = [self.t1, self.t2]
-                            self.temp_table = pd.concat(frames) # <- join     of filtered df's
-                            self.exist=True
-
-                        else:
-                            print("6. val1 = 1, val2 = 1, op = 0, val1 = str")
-                            index= self.in_df[f'{self.field}'].str.contains(f'{self.val1}')
-                            self.t1= self.in_df[index]
-                            index2 = self.in_df[f'{self.field}'].str.contains(f'{self.val2}')
-                            self.t2 = self.in_df[index2]
-                            frames = [self.t1, self.t2]
-                            self.temp_table = pd.concat(frames)
-                            self.exist=True
-
-                    elif val1 is not None and type(val1) == int and val2 is None:
-                        if op is not None:
-                            print("6. val1 = 1, val2 = 0, op = 1, type = int")
-                            index= self.in_df[f'{self.field}']==self.val1
-                            self.temp_table = self.in_df[~index]
-                            self.exist=True
-
-                        else:
-                            print("6. val1 = 1, val2 = 0, op = 0, type = int")
-                            index= self.in_df[f'{self.field}']==f'{self.val1}'
-                            self.temp_table = self.in_df[index]
-                            self.exist=True
-
-                    elif val1 is not None and type(val1) == int and val2 is not None:
-                         if op is not None:
-                             print("6. val1 = 1, val2 = 1, op = 1, type = int")
-                             index = self.in_df[f'{self.field}']==self.val1
-                             self.t1 = self.in_df[~index]
-                             index2 = self.in_df[f'{self.field}']==self.val2
-                             self.t2 = self.in_df[~index2]
-                             frames = [self.t1, self.t2]
-                             self.temp_table = pd.concat(frames)
-                             self.exist=True
-
-                         else:
-                             print("6. val1 = 1, val2 = 1, op = 0, type = int")
-                             index = self.in_df[f'{self.field}']==self.val1
-                             self.t1 = self.in_df[index]
-                             index2 = self.in_df[f'{self.field}']==self.val2
-                             self.t2 = self.in_df[index2]
-                             frames = [self.t1, self.t2]
-                             self.temp_table = pd.concat(frames)
-                             self.exist=True
-
-                # else if there's no value to look up, print unique values in supplied     field
-                    else:
-                        print('5. field exists; input 1 or 2 values to index table by')
-                        exec(f'self.uniq = self.temp.{self.field}.unique()')
-                        self.exist=False
-
-            # else if theres not value to look up and field does not exist
-            # within table, return warning
-                else:
-                    print("5. field not found, returning empty table")
-                    self.temp_table = pd.concat([pd.DataFrame({k:[]for k in self.temp.columns}), None, None])
-
-
-
+                return pd.concat(dfset)
             except Exception as e:
                 print(e)
-                self.exist=False
         else:
-            print('3. input df, cannot create table')
-
-    def GetCount_management(self, in_df):  # needs work
-        """ counts rows of supplied object?
-        or count rows of internal table (class attribute?)
+            print("error")
+    def GetCount(self,in_df):
+        """ Returns number of rows in dataframe
         """
-        try:
-            if self.exist is not None:
-                return self.in_df.shape[0]
-        # if self.exist==False:
-        #
-        #     return int(0)
-        # elif self.exist==False and self.uniq!=None:
-        #
-        #     return len(self.temp)
-        # elif self.exist==True:
-        #
-        #     return len(self.temp)
-            elif self.exist is None:
-                print("use SelectLayerByAttribute first")
-                return(len(self.temp))
-        except Exception as e:
-            print(e)
+        self.in_df = in_df
+        return self.in_df.shape[0]
 
-    def AddJoin_management(self,
+    def AddJoin(self,
     in_df,df2,right_on=None,left_on=None):
         """ inner join on two dataframes on 1 or 2 fields
-
+        ex.
+        arc = arcno()
+        arc.AddJoin('dataframe_x', 'dataframe_y', 'field_a')
         """
-        import pandas as pd
         # self.temp_table = None
         d={}
+        self.right_on = None
+        self.left_on = None
 
         d[self.right_on] = right_on
         d[self.left_on] = left_on
@@ -203,25 +188,46 @@ class arcno():
         if self.right_on==self.left_on and len(self.in_df.columns)==len(self.df2.columns):
             try:
                 frames = [self.in_df, self.df2]
-                self.temp_table = pd.concat(frames)
+                return pd.concat(frames)
             except Exception as e:
                 print(e)
                 print('1. field or fields invalid' )
         elif self.right_on==self.left_on and len(self.in_df.columns)!=len(self.df2.columns):
             try:
                 # frames = [self.in_df, self.df2]
-                self.temp_table = self.in_df.merge(self.df2, on = d[self.right_on], how='inner')
+                return self.in_df.merge(self.df2, on = d[self.right_on], how='inner')
             except Exception as e:
                 print(e)
                 print('2. field or fields invalid')
         else:
             try:
-                self.temp_table=self.in_df.merge(self.df2,right_on=d[self.right_on], left_on=d[self.left_on])
+                return self.in_df.merge(self.df2,right_on=d[self.right_on], left_on=d[self.left_on])
             except Exception as e:
                 print(e)
                 print('3. field or fields invalid')
 
-    def AddField_management(self, in_df, newfield):
+    def CalculateField(self,in_df,newfield,*fields):
+        """ Creates a newfield by concatenating any number of existing fields
+        ex.
+        arc = arcno()
+        arc.CalculateField('dataframe_x', 'name_of_new_field', 'field_x', 'field_y','field_z')
+
+        field_x = 'red'
+        field_y = 'blue'
+        field_z = 'green'
+
+        name_of_new_field = 'redbluegreen'
+        """
+        self.in_df = in_df
+        self.newfield = newfield
+        self.fields = fields
+
+        self.in_df[f'{self.newfield}'] = (self.in_df[[f'{field}' for field in self.fields]].astype(str)).sum(axis=1)
+        return self.in_df
+
+
+
+    def AddField(self, in_df, newfield):
         """ adds empty field within 'in_df' with fieldname
         supplied in the argument
         """
@@ -229,35 +235,33 @@ class arcno():
         self.newfield = newfield
 
         self.in_df[f'{self.newfield}'] = pd.Series()
+        return self.in_df
 
-    def RemoveJoin_management(self):
+    def RemoveJoin(self):
         """ creates deep copy of original dataset
         and joins any new fields product of previous
         right hand join
         """
         pass
 
-    def MakeFeatureLayer_management(self):
-        """ may be similar to screate table view
+    def isolateFields(self,in_df,*fields):
+        """ creates a new dataframe with submitted
+        fields.
         """
-        pass
+        self.in_df = in_df
+        self.fields = fields
+        self.isolates =self.in_df[[f'{field}' for field in self.fields]]
+        return self.isolates
+
+
+    # def MakeFeatureLayer(self):
+    #     """ may be similar to screate table view
+    #     """
+    #     pass
 
     def GetParameterAsText(self,string):
         """ return stringified element
 
         """
-
         self.string = f'{string}'
         return self.string
-
-
-
-"""
-Starting DIMA - C:\\Users\\kbonefont.JER-PC-CLIMATE4\\Desktop\\Some_data\\db.mdb
-   Starting Dups check
-used query:SELECT * FROM "tblGapDetail"
-df detected
-starting try..
-field not found
-use SelectLayerByAttribute first
-      tblGapDetail - No Dups found"""
