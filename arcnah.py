@@ -4,6 +4,11 @@ from os.path import normpath, join
 from methods.make_table import Table
 from utils import Acc
 
+"""
+ replacing ap's gdb methods with pandas alternatives
+
+ - if ap creates a temporary view in gdb, arcno creates dataframe within its
+   temp class attribute
 
 
 """
@@ -102,14 +107,16 @@ class arcno():
         self.in_df = in_df
         self.df2 = df2
 
-        if self.right_on==self.left_on and len(self.in_df.columns)==len(self.df2.columns):
+        if self.right_on==self.left_on
+          and len(self.in_df.columns)==len(self.df2.columns):
             try:
                 frames = [self.in_df, self.df2]
                 return pd.concat(frames)
             except Exception as e:
                 print(e)
                 print('1. field or fields invalid' )
-        elif self.right_on==self.left_on and len(self.in_df.columns)!=len(self.df2.columns):
+        elif self.right_on==self.left_on
+          and len(self.in_df.columns)!=len(self.df2.columns):
             try:
                 # frames = [self.in_df, self.df2]
                 return self.in_df.merge(self.df2, on = d[self.right_on], how='inner')
