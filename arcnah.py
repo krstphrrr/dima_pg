@@ -4,12 +4,6 @@ from os.path import normpath, join
 from methods.make_table import Table
 from utils import Acc
 
-"""
- replacing ap's gdb methods with pandas alternatives
-
- - if ap creates a temporary view in gdb, arcno creates dataframe within its
-   temp class attribute
-
 
 """
  replacing ap's gdb methods with pandas alternatives
