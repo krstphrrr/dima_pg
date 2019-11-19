@@ -1,19 +1,16 @@
 from arcnah import arcno
-
+from os.path import normpath
+from utils import db
+from sqlalchemy import create_engine
+from utils import sql_str, config
 """
 None-BSNE data: 'PlotKey' + 'FormDate' on most atomic level
 BSNE data: 'PlotKey' + 'collectDate'
-"""
-"""
-Check tables inside the dima
-"""
-for tbl in arc.tablelist:
-    tempdf = arc.MakeTableView(f'{tbl}',path)
-    if tempdf.shape[0]>10:
-        tablewithdata[f'{tbl}']=tempdf
 
-tablewithdata = {}
-[key for key in tablewithdata.keys()]
+to-do:
+- if-blocks repetitive, general logic could be detailed elsewhere
+"""
+
 
 """
 creating dataframes that create a primary key at most atomic level And
@@ -106,7 +103,12 @@ returns the table with the proper PrimaryKey field appended.
 to-do:
 - behavior with empty tables inside dima
 """
-def plotlinerec(tablename,dimapath):
+arc = arcno()
+# plottmp = arc.MakeTableView('tblBSNE_Stack', path)
+# plottmp
+# pk_add('tblPlots', path)
+
+def pk_add(tablename,dimapath):
     """
     adds primary key to the chosen table
     1. PlotKey pipe
@@ -114,6 +116,7 @@ def plotlinerec(tablename,dimapath):
     3. reckey pipe
     4. pipe if its none of the above: only BSNE implemented
     """
+    plot = None
 
 
     plotkeylist = ['tblPlots','tblLines','tblQualHeader','tblSoilStabHeader',
@@ -130,20 +133,35 @@ def plotlinerec(tablename,dimapath):
 
     arc = arcno()
     if tablename in plotkeylist:
-        tempdf = arc.MakeTableView(f'{tablename}', dimapath)
-        fulldf = arc.CalculateField(tempdf, "PrimaryKey", "PlotKey", "FormDate")
-        # fulldf = lpi_pk(dimapath)
-        arc.isolateFields(fulldf, 'PlotKey','PrimaryKey')
-        plot_tmp = arc.isolates
-        plt = plot_tmp.rename(columns={'PlotKey':'PlotKey2'}).copy(deep=True)
-        plt = plt.drop_duplicates(['PlotKey2'])
-        plottable = arc.MakeTableView(f'{tablename}',dimapath)
-        plot_pk = plt.merge(plottable, left_on=plt.PlotKey2, right_on=plottable.PlotKey)
-        plot_pk.drop('PlotKey2', axis=1, inplace=True)
-        plot_pk = plot_pk.copy(deep=True)
-        plot_pk.drop('key_0', axis=1, inplace=True)
-        mdb[f'{tablename}'] =plot_pk
-        return plot_pk
+
+        if tablename.find('Horizon')!=-1:
+            fulldf = gap_pk(dimapath)
+            arc.isolateFields(fulldf, 'PlotKey','PrimaryKey')
+            soil_tmp = arc.isolates
+            plt = plot_tmp.rename(columns={'PlotKey':'PlotKey2'}).copy(deep=True)
+            plt = plt.drop_duplicates(['PlotKey2'])
+            plottable = arc.MakeTableView('tblSoilPits',dimapath)
+            soil_pk = plt.merge(plottable, left_on=plt.PlotKey2, right_on=plottable.PlotKey)
+            soil_pk.drop('PlotKey2', axis=1, inplace=True)
+            soil_pk = soil_pk.copy(deep=True)
+            soil_pk.drop('key_0', axis=1, inplace=True)
+            hordf = arc.MakeTableView(f'{tablename}', dimapath)
+            shor = arc.AddJoin(soil_pk, hordf, 'SoilKey', 'SoilKey')
+            return shor
+
+        else:
+            fulldf = gap_pk(dimapath)
+            arc.isolateFields(fulldf, 'PlotKey','PrimaryKey')
+            plot_tmp = arc.isolates
+            plt = plot_tmp.rename(columns={'PlotKey':'PlotKey2'}).copy(deep=True)
+            plt = plt.drop_duplicates(['PlotKey2'])
+            plottable = arc.MakeTableView(f'{tablename}',dimapath)
+            plot_pk = plt.merge(plottable, left_on=plt.PlotKey2, right_on=plottable.PlotKey)
+            plot_pk.drop('PlotKey2', axis=1, inplace=True)
+            plot_pk = plot_pk.copy(deep=True)
+            plot_pk.drop('key_0', axis=1, inplace=True)
+            # mdb[f'{tablename}'] =plot_pk
+            return plot_pk
 
     elif tablename in linekeylist:
         if tablename.find('Gap')!=-1:
@@ -156,9 +174,8 @@ def plotlinerec(tablename,dimapath):
             linekeytable_pk = lin.merge(linekeytable, left_on=lin.LineKey2, right_on=linekeytable.LineKey)
             linekeytable_pk.drop('LineKey2', axis=1, inplace=True)
             linekeytabler_pk = linekeytable_pk.copy(deep=True)
-            print(linekeytable_pk.columns)
             linekeytable_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] = linekeytable_pk
+            # mdb[f'{tablename}'] = linekeytable_pk
             return linekeytable_pk
 
         elif tablename.find('LPI')!=-1:
@@ -171,9 +188,8 @@ def plotlinerec(tablename,dimapath):
             linekeytable_pk = lin.merge(linekeytable, left_on=lin.LineKey2, right_on=linekeytable.LineKey)
             linekeytable_pk.drop('LineKey2', axis=1, inplace=True)
             linekeytabler_pk = linekeytable_pk.copy(deep=True)
-            print(linekeytable_pk.columns)
             linekeytable_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] = linekeytable_pk
+            # mdb[f'{tablename}'] = linekeytable_pk
             return linekeytable_pk
 
         elif tablename.find('SpecRich')!=-1:
@@ -186,9 +202,8 @@ def plotlinerec(tablename,dimapath):
             linekeytable_pk = lin.merge(linekeytable, left_on=lin.LineKey2, right_on=linekeytable.LineKey)
             linekeytable_pk.drop('LineKey2', axis=1, inplace=True)
             linekeytabler_pk = linekeytable_pk.copy(deep=True)
-            print(linekeytable_pk.columns)
             linekeytable_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] = linekeytable_pk
+            # mdb[f'{tablename}'] = linekeytable_pk
             return linekeytable_pk
 
         elif tablename.find('PlantDen')!=-1:
@@ -201,9 +216,7 @@ def plotlinerec(tablename,dimapath):
             linekeytable_pk = lin.merge(linekeytable, left_on=lin.LineKey2, right_on=linekeytable.LineKey)
             linekeytable_pk.drop('LineKey2', axis=1, inplace=True)
             linekeytabler_pk = linekeytable_pk.copy(deep=True)
-            print(linekeytable_pk.columns)
             linekeytable_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] = linekeytable_pk
             return linekeytable_pk
 
     elif tablename in reckeylist:
@@ -218,7 +231,6 @@ def plotlinerec(tablename,dimapath):
             reckeytable_pk.drop('RecKey2', axis=1, inplace=True)
             reckeytable_pk = reckeytable_pk.copy(deep=True)
             reckeytable_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] = reckeytable_pk
             return reckeytable_pk
 
         elif tablename.find('LPI')!=-1:
@@ -232,7 +244,6 @@ def plotlinerec(tablename,dimapath):
             reckeytable_pk.drop('RecKey2', axis=1, inplace=True)
             reckeytable_pk = reckeytable_pk.copy(deep=True)
             reckeytable_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] = reckeytable_pk
             return reckeytable_pk
 
         elif tablename.find('SpecRich')!=-1:
@@ -246,7 +257,7 @@ def plotlinerec(tablename,dimapath):
             reckeytable_pk.drop('RecKey2', axis=1, inplace=True)
             reckeytable_pk = reckeytable_pk.copy(deep=True)
             reckeytable_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] = reckeytable_pk
+            # mdb[f'{tablename}'] = reckeytable_pk
             return reckeytable_pk
 
         elif tablename.find('PlantDen')!=-1:
@@ -260,7 +271,7 @@ def plotlinerec(tablename,dimapath):
             reckeytable_pk.drop('RecKey2', axis=1, inplace=True)
             reckeytable_pk = reckeytable_pk.copy(deep=True)
             reckeytable_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] = reckeytable_pk
+            # mdb[f'{tablename}'] = reckeytable_pk
             return reckeytable_pk
 
         else:
@@ -275,7 +286,7 @@ def plotlinerec(tablename,dimapath):
             reckeytable_pk.drop('RecKey2', axis=1, inplace=True)
             reckeytable_pk = reckeytable_pk.copy(deep=True)
             reckeytable_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] = reckeytable_pk
+            # mdb[f'{tablename}'] = reckeytable_pk
             return reckeytable_pk
 
     elif tablename.find("BSNE")!=-1:
@@ -291,7 +302,7 @@ def plotlinerec(tablename,dimapath):
             plot_pk.drop('PlotKey2', axis=1, inplace=True)
             plot_pk = plot_pk.copy(deep=True)
             plot_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] =plot_pk
+            # mdb[f'{tablename}'] =plot_pk
             return plot_pk
 
         if tablename.find("BoxCollection")!=-1:
@@ -306,7 +317,7 @@ def plotlinerec(tablename,dimapath):
             plot_pk.drop('BoxID2', axis=1, inplace=True)
             plot_pk = plot_pk.copy(deep=True)
             plot_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] =plot_pk
+            # mdb[f'{tablename}'] =plot_pk
             return plot_pk
 
         else:
@@ -321,28 +332,19 @@ def plotlinerec(tablename,dimapath):
             plot_pk.drop('BoxID2', axis=1, inplace=True)
             plot_pk = plot_pk.copy(deep=True)
             plot_pk.drop('key_0', axis=1, inplace=True)
-            mdb[f'{tablename}'] =plot_pk
+            # mdb[f'{tablename}'] =plot_pk
             return plot_pk
 
+    else:
+        print('Supplied tablename does not exist in dima or a path to it has not been implemented.')
 
 
-
-
-
-
-
-
-
-def to_plot(plottable, dimapath):
-    fulldf = lpi_pk(dimapath)
-    arc = arcno()
-    arc.isolateFields(fulldf, 'PlotKey','PrimaryKey')
-    plot_tmp = arc.isolates
-    plt = plot_tmp.rename(columns={'PlotKey':'PlotKey2'}).copy(deep=True)
-    plt = plt.drop_duplicates(['PlotKey2'])
-    plot_pk = plt.merge(plottable, left_on=plt.PlotKey2, right_on=plottable.PlotKey)
-    plot_pk.drop('PlotKey2', axis=1, inplace=True)
-    plot_pk = plot_pk.copy(deep=True)
-    plot_pk.drop('key_0', axis=1, inplace=True)
-    mdb['tblPlots'] =plot_pk
-    return plot_pk
+def pg_send(tablename, dimapath):
+    cursor = db.str.cursor()
+    df = pk_add(tablename,dimapath)
+    # # to sql requires slqalchemy engine
+    engine = create_engine(sql_str(config()))
+    if df.shape[0]>0:
+        df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='replace')
+    else:
+        print('Ingestion to postgresql DB aborted: table is empty')
