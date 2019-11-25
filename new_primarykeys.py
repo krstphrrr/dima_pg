@@ -1,8 +1,10 @@
 from arcnah import arcno
-from os.path import normpath
+from os.path import normpath, split, splitext
 from utils import db
 from sqlalchemy import create_engine
 from utils import sql_str, config
+from datetime import datetime
+from psycopg2 import sql
 """
 None-BSNE data: 'PlotKey' + 'FormDate' on most atomic level
 BSNE data: 'PlotKey' + 'collectDate'
@@ -21,6 +23,8 @@ propagate it outward:
 4. PlantDen
 5. BSNE
 """
+
+
 def lpi_pk(dimapath):
     # tables
     arc = arcno()
@@ -105,8 +109,6 @@ to-do:
 """
 arc = arcno()
 # plottmp = arc.MakeTableView('tblBSNE_Stack', path)
-# plottmp
-# pk_add('tblPlots', path)
 
 def pk_add(tablename,dimapath):
     """
@@ -120,7 +122,7 @@ def pk_add(tablename,dimapath):
 
 
     plotkeylist = ['tblPlots','tblLines','tblQualHeader','tblSoilStabHeader',
-    'tblSoilPits','tblPlantProdHeader','tblPlotNotes']
+    'tblSoilPits','tblPlantProdHeader','tblPlotNotes', 'tblSoilPitHorizons']
 
     linekeylist = ['tblGapHeader','tblLPIHeader','tblSpecRichHeader',
     'tblPlantDenHeader']
@@ -136,9 +138,11 @@ def pk_add(tablename,dimapath):
 
         if tablename.find('Horizon')!=-1:
             fulldf = gap_pk(dimapath)
+            if fulldf.shape[0]<1:
+                fulldf = lpi_pk(dimapath)
             arc.isolateFields(fulldf, 'PlotKey','PrimaryKey')
             soil_tmp = arc.isolates
-            plt = plot_tmp.rename(columns={'PlotKey':'PlotKey2'}).copy(deep=True)
+            plt = soil_tmp.rename(columns={'PlotKey':'PlotKey2'}).copy(deep=True)
             plt = plt.drop_duplicates(['PlotKey2'])
             plottable = arc.MakeTableView('tblSoilPits',dimapath)
             soil_pk = plt.merge(plottable, left_on=plt.PlotKey2, right_on=plottable.PlotKey)
@@ -146,8 +150,17 @@ def pk_add(tablename,dimapath):
             soil_pk = soil_pk.copy(deep=True)
             soil_pk.drop('key_0', axis=1, inplace=True)
             hordf = arc.MakeTableView(f'{tablename}', dimapath)
-            shor = arc.AddJoin(soil_pk, hordf, 'SoilKey', 'SoilKey')
-            return shor
+
+            arc.isolateFields(soil_pk,'SoilKey','PrimaryKey')
+            sk_tmp = arc.isolates
+            plt = sk_tmp.rename(columns={'SoilKey':'SoilKey2'}).copy(deep=True)
+            plt = plt.drop_duplicates(['SoilKey2'])
+            soil_pk = plt.merge(hordf, left_on=plt.SoilKey2, right_on=hordf.SoilKey)
+            soil_pk.drop('SoilKey2', axis=1, inplace=True)
+            soil_pk = soil_pk.copy(deep=True)
+            soil_pk.drop('key_0', axis=1, inplace=True)
+
+            return soil_pk
 
         else:
             fulldf = gap_pk(dimapath)
@@ -334,17 +347,44 @@ def pk_add(tablename,dimapath):
             plot_pk.drop('key_0', axis=1, inplace=True)
             # mdb[f'{tablename}'] =plot_pk
             return plot_pk
+    elif (tablename.find('tblSpecie')!=-1) or (tablename.find('tblSpeciesGeneric')!=-1):
+        tempdf = arc.MakeTableView(f'{tablename}', dimapath)
+        return tempdf
 
     else:
         print('Supplied tablename does not exist in dima or a path to it has not been implemented.')
 
 
 def pg_send(tablename, dimapath):
+
     cursor = db.str.cursor()
-    df = pk_add(tablename,dimapath)
-    # # to sql requires slqalchemy engine
-    engine = create_engine(sql_str(config()))
-    if df.shape[0]>0:
-        df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='replace')
-    else:
-        print('Ingestion to postgresql DB aborted: table is empty')
+    try:
+        # adds primarykey to access table and returns dataframe with it
+        df = pk_add(tablename,dimapath)
+        # adds dateloaded and db key to dataframe
+        df['DateLoadedInDB']= datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+        df['DBKey']=split(splitext(dimapath)[0])[1].replace(" ","")
+        # use pandas 'to_sql' to send altered dataframe to postgres db
+        engine = create_engine(sql_str(config()))
+        if df.shape[0]>0:
+            df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append')
+            # return df
+        else:
+            print(f'Ingestion to postgresql DB aborted: {tablename} is empty')
+    except Exception as e:
+        print(e)
+
+def drop_one(table):
+    con = db.str
+    cur = db.str.cursor()
+    try:
+        cur.execute(
+        sql.SQL('DROP TABLE IF EXISTS postgres.public.{0}').format(
+                 sql.Identifier(table))
+    )
+        con.commit()
+        print(f'successfully dropped {table}')
+
+
+    except Exception as e:
+        print(e)

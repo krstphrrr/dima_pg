@@ -101,16 +101,14 @@ class arcno():
         self.in_df = in_df
         self.df2 = df2
 
-        if self.right_on==self.left_on
-          and len(self.in_df.columns)==len(self.df2.columns):
+        if self.right_on==self.left_on and len(self.in_df.columns)==len(self.df2.columns):
             try:
                 frames = [self.in_df, self.df2]
                 return pd.concat(frames)
             except Exception as e:
                 print(e)
                 print('1. field or fields invalid' )
-        elif self.right_on==self.left_on
-          and len(self.in_df.columns)!=len(self.df2.columns):
+        elif self.right_on==self.left_on and len(self.in_df.columns)!=len(self.df2.columns):
             try:
                 # frames = [self.in_df, self.df2]
                 return self.in_df.merge(self.df2, on = d[self.right_on], how='inner')
