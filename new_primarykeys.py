@@ -1,5 +1,5 @@
 from arcnah import arcno
-from os.path import normpath, split, splitext
+from os.path import normpath, split, splitext, join
 from utils import db
 from sqlalchemy import create_engine
 from utils import sql_str, config
@@ -105,7 +105,9 @@ takes a dima tablename string and a dima path,
 returns the table with the proper PrimaryKey field appended.
 (works for the most part, depends on dima)
 to-do:
-- behavior with empty tables inside dima
+- DONE implement sites table
+- DONE detect calibration in dimapath and append to dbkey? or source
+- keep unexpected columns
 """
 arc = arcno()
 # plottmp = arc.MakeTableView('tblBSNE_Stack', path)
@@ -347,7 +349,7 @@ def pk_add(tablename,dimapath):
             plot_pk.drop('key_0', axis=1, inplace=True)
             # mdb[f'{tablename}'] =plot_pk
             return plot_pk
-    elif (tablename.find('tblSpecie')!=-1) or (tablename.find('tblSpeciesGeneric')!=-1):
+    elif (tablename.find('tblSpecie')!=-1) or (tablename.find('tblSpeciesGeneric')!=-1) or (tablename.find('tblSites')!=-1):
         tempdf = arc.MakeTableView(f'{tablename}', dimapath)
         return tempdf
 
@@ -361,13 +363,19 @@ def pg_send(tablename, dimapath):
     try:
         # adds primarykey to access table and returns dataframe with it
         df = pk_add(tablename,dimapath)
+        # df = pk_add('tblGapDetail',dimapath3)
         # adds dateloaded and db key to dataframe
         df['DateLoadedInDB']= datetime.now().strftime("%d-%m-%Y %H:%M:%S")
-        df['DBKey']=split(splitext(dimapath)[0])[1].replace(" ","")
+        if dimapath.find('calibration')!=-1:
+            df['DBKey']=join('calibration_',split(splitext(dimapath)[0])[1].replace(" ",""))
+            df['DBKey']=split(splitext(dimapath)[0])[1].replace(" ","")
+        if 'tempSeqNo' in df.columns:
+            df=df.drop('tempSeqNo',1)
+
         # use pandas 'to_sql' to send altered dataframe to postgres db
         engine = create_engine(sql_str(config()))
         if df.shape[0]>0:
-            df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append')
+            df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append', chunksize=500)
             # return df
         else:
             print(f'Ingestion to postgresql DB aborted: {tablename} is empty')
