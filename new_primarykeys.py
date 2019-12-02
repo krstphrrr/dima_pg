@@ -5,12 +5,14 @@ from sqlalchemy import create_engine
 from utils import sql_str, config
 from datetime import datetime
 from psycopg2 import sql
+import pandas as pd
 """
 None-BSNE data: 'PlotKey' + 'FormDate' on most atomic level
 BSNE data: 'PlotKey' + 'collectDate'
 
 to-do:
-- if-blocks repetitive, general logic could be detailed elsewhere
+- refactor all
+
 """
 
 
@@ -356,7 +358,14 @@ def pk_add(tablename,dimapath):
     else:
         print('Supplied tablename does not exist in dima or a path to it has not been implemented.')
 
+def newcols(fdf,rdf):
+    for item in fdf.columns.tolist():
+        if item not in rdf.columns.tolist():
+            df = rdf.copy(deep=True)
+            df[f'{item}'] = fdf[f'{item}']
+            return df
 
+cursor.execute(f'SELECT * FROM {tablename}', db.str).fetchall()[0]
 def pg_send(tablename, dimapath):
 
     cursor = db.str.cursor()
@@ -375,12 +384,36 @@ def pg_send(tablename, dimapath):
         # use pandas 'to_sql' to send altered dataframe to postgres db
         engine = create_engine(sql_str(config()))
         if df.shape[0]>0:
-            df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append', chunksize=500)
+            # need to pull col list from db
+            if cursor.execute(f'SELECT * FROM {tablename}', db.str).fetchall()[0]:
+                dbcols = pd.read_sql(f'SELECT * FROM {tablename} LIMIT 1', db.str)
+                df.columns.tolist().sort()
+                dbcols.columns.tolist().sort()
+                if df.columns.tolist() == dbcols.columns.tolist():
+                #if theres no difference, ingest and append, else do the magic
+                    df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append', chunksize=500)
+                    db.str.commit()
+                else:
+                    for item in df.columns.tolist():
+                        if item not in dbcols.columns.tolist():
+                            data = pd.read_sql(f'SELECT * FROM {tablename}', db.str)
+                            df1 = pd.concat([data,df[f'{item}']],sort=False, axis=1, chunksize=500)
+                            # df1[f'{item}'] = df[f'{item}']
+                            df1.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='replace', chunksize=500)
+                            db.str.commit()
+            else:
+                df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append', chunksize=500)
+                db.str.commit()
+
+
             # return df
         else:
             print(f'Ingestion to postgresql DB aborted: {tablename} is empty')
+
     except Exception as e:
         print(e)
+        cursor.execute("ROLLBACK")
+        db.str.commit()
 
 def drop_one(table):
     con = db.str
