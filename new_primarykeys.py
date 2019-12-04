@@ -38,7 +38,7 @@ def lpi_pk(dimapath):
     plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
     lpihead_detail = arc.AddJoin(lpi_header, lpi_detail, 'RecKey')
     plot_line_det = arc.AddJoin(plot_line, lpihead_detail, 'LineKey', 'LineKey')
-    # plot_line_det_head = arc.AddJoin(plot_line_det, lpiheader, 'RecKey')
+
     plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 
     return plot_pk
@@ -54,7 +54,7 @@ def gap_pk(dimapath):
     plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
     gaphead_detail = arc.AddJoin(gap_header, gap_detail, 'RecKey')
     plot_line_det = arc.AddJoin(plot_line, gaphead_detail, 'LineKey', 'LineKey')
-    # plot_line_det_head = arc.AddJoin(plot_line_det, header, 'RecKey')
+
     plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 
     return plot_pk
@@ -70,7 +70,7 @@ def sperich_pk(dimapath):
     plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
     spehead_detail = arc.AddJoin(spe_header, spe_detail, 'RecKey')
     plot_line_det = arc.AddJoin(plot_line, spehead_detail, 'LineKey', 'LineKey')
-    # plot_line_det_head = arc.AddJoin(plot_line_det, header, 'RecKey')
+
     plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 
     return plot_pk
@@ -86,21 +86,35 @@ def plantden_pk(dimapath):
     plot_line = arc.AddJoin(plots,lines, 'PlotKey','PlotKey')
     plahead_detail = arc.AddJoin(pla_header, pla_detail, 'RecKey')
     plot_line_det = arc.AddJoin(plot_line, plahead_detail, 'LineKey', 'LineKey')
-    # plot_line_det_head = arc.AddJoin(plot_line_det, header, 'RecKey')
+
     plot_pk = arc.CalculateField(plot_line_det, "PrimaryKey", "PlotKey", "FormDate")
 
     return plot_pk
 
 def bsne_pk(dimapath):
-    box = arc.MakeTableView("tblBSNE_Box",dimapath)
+    ddt = arc.MakeTableView("tblBSNE_TrapCollection",dimapath)
+    if ddt.shape[0]>0:
+        ddt = arc.MakeTableView("tblBSNE_TrapCollection",dimapath)
 
-    stack = arc.MakeTableView("tblBSNE_Stack", dimapath)
-    boxcol = arc.MakeTableView('tblBSNE_BoxCollection', dimapath)
+        stack = arc.MakeTableView("tblBSNE_Stack", dimapath)
 
-    df = arc.AddJoin(stack, box, "StackID", "StackID")
-    df2 = arc.AddJoin(df,boxcol, "BoxID")
-    df2 = arc.CalculateField(df2,"PrimaryKey","PlotKey","collectDate")
-    return df2
+        df = arc.AddJoin(stack, ddt, "StackID", "StackID")
+        df2 = arc.CalculateField(df,"PrimaryKey","Location","collectDate","PlotKey")
+        return df2
+    else:
+
+        box = arc.MakeTableView("tblBSNE_Box",dimapath)
+
+        stack = arc.MakeTableView("tblBSNE_Stack", dimapath)
+        boxcol = arc.MakeTableView('tblBSNE_BoxCollection', dimapath)
+
+        df = arc.AddJoin(stack, box, "StackID", "StackID")
+        df2 = arc.AddJoin(df,boxcol, "BoxID")
+        df2 = arc.CalculateField(df2,"PrimaryKey","Location","collectDate","PlotKey")
+        return df2
+
+
+
 
 """
 takes a dima tablename string and a dima path,
@@ -110,8 +124,13 @@ to-do:
 - DONE implement sites table
 - DONE detect calibration in dimapath and append to dbkey? or source
 - DONE keep unexpected columns
+- DONE new names for BSNE data: tblHorizontalFlux + locations, tblDustDeposition + locations
+- DONE corresponding primarykey on new tables: location + collect date + plotkey
+
 """
 arc = arcno()
+
+
 
 def pk_add(tablename,dimapath):
     """
@@ -335,9 +354,21 @@ def pk_add(tablename,dimapath):
             plot_pk.drop('key_0', axis=1, inplace=True)
             # mdb[f'{tablename}'] =plot_pk
             return plot_pk
+
         elif tablename.find("Trap")!=-1: # added
             tempdf = arc.MakeTableView(f'{tablename}', dimapath)
-            return tempdf
+            fulldf = bsne_pk(dimapath)
+            arc.isolateFields(fulldf, 'StackID','PrimaryKey')
+            stack_tmp = arc.isolates
+            stk = stack_tmp.rename(columns={'StackID':'StackID2'}).copy(deep=True)
+            stk = stk.drop_duplicates(['StackID2'])
+            stacktable = arc.MakeTableView(f'{tablename}',dimapath)
+            stack_pk = stk.merge(stacktable, left_on=stk.StackID2, right_on=stacktable.StackID)
+            stack_pk.drop('StackID2', axis=1, inplace=True)
+            stack_pk = stack_pk.copy(deep=True)
+            stack_pk.drop('key_0', axis=1, inplace=True)
+            # mdb[f'{tablename}'] =plot_pk
+            return stack_pk
 
         else:
             tempdf = arc.MakeTableView(f'{tablename}', dimapath)
@@ -371,13 +402,18 @@ def newcols(fdf,rdf):
             return df
 
 
-
 def pg_send(tablename, dimapath):
-
+    mwacksig = 0
+    ddtsig = 0
     cursor = db.str.cursor()
     try:
         # adds primarykey to access table and returns dataframe with it
-        df = pk_add(tablename,dimapath)
+        # if its a box, box collection or ddt table, bring full df
+        if (tablename.find('BSNE_Box')!=-1) or (tablename.find('BSNE_BoxCollection')!=-1) or (tablename.find('BSNE_TrapCollection')!=-1):
+            df = bsne_pk(dimapath)
+        else:
+            df = pk_add(tablename,dimapath)
+
 
         # adds dateloaded and db key to dataframe
         df['DateLoadedInDB']= datetime.now().strftime("%d-%m-%Y %H:%M:%S")
@@ -387,23 +423,54 @@ def pg_send(tablename, dimapath):
         else:
             df['DBKey']=split(splitext(dimapath)[0])[1].replace(" ","")
 
+        if 'ItemType' in df.columns:
+            #handles mwack or ddt names, turns on signals for further processing
+            if (df.ItemType[0]=='M') or (df.ItemType[0]=='m'):
+                mwacksig = 1
+                if tablename.find('Stack')!=-1:
+                    newtablename = 'tblHorizontalFlux_Locations'
+                else:
+                    newtablename = 'tblHorizontalFlux'
+
+            elif (df.ItemType[0]=='T') or (df.ItemType[0]=='t'):
+                ddtsig = 1
+                if tablename.find('Stack')!=-1:
+                    newtablename = 'tblDustDeposition_Locations'
+                else:
+                    newtablename = 'tblDustDeposition'
+        else:
+            pass
+
         # use pandas 'to_sql' to send altered dataframe to postgres db
         engine = create_engine(sql_str(config()))
         if df.shape[0]>0:
             # need to pull col list from db
             try:
             #if theres no difference, ingest and append, else do the magic
-                df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append')
+                while (mwacksig == 0) and (ddtsig == 0):
+                    # if mwack or ddt signals off, ingest normally
+                    df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append')
+                    break
+                else:
+                    tablename = newtablename
+                    df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append')
+                    mwacksig = 0
+                    ddtsig = 0
+
 
             except Exception as e:
+                # handling out of norm table schemas..
                 print("mismatch between the columns in database table and supplied table..")
 
                 dbcols = pd.read_sql(f'SELECT * FROM "{tablename}" LIMIT 1', db.str)
 
 
                 if len(df.columns.tolist())>1:
+                    # if df has anything in it...
                     for item in df.columns.tolist():
                         if item not in dbcols.columns.tolist():
+                            # any column not in the database has to be
+                            # created: colname + postgres-compatible datatype
                             print(f'{item} is not in db')
                             vartype = {
                             'int64':'int',
