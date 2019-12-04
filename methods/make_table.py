@@ -15,8 +15,3 @@ class Table:
 
     def temp(self):
         return self.temp
-
-
-query = 'SELECT * FROM "tblLines"'
-con = Acc(self.path).con
-pandas.read_sql(query, con)

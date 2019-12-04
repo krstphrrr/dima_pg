@@ -336,7 +336,7 @@ def pk_add(tablename,dimapath):
             plot_pk.drop('key_0', axis=1, inplace=True)
             # mdb[f'{tablename}'] =plot_pk
             return plot_pk
-        elif tablename.find("Trap")!=-1:
+        elif tablename.find("Trap")!=-1: # added
             tempdf = arc.MakeTableView(f'{tablename}', dimapath)
             return tempdf
 
@@ -361,7 +361,7 @@ def pk_add(tablename,dimapath):
     else:
         # print('Supplied tablename does not exist in dima or a path to it has not been implemented.')
 
-        tempdf = arc.MakeTableView(f'{tablename}', dimapath)
+        tempdf = arc.MakeTableView(f'{tablename}', dimapath) # added
         return tempdf
 
 def newcols(fdf,rdf):
@@ -373,106 +373,13 @@ def newcols(fdf,rdf):
 
 
 
-
-# dimapath3 = normpath(r"C:\Users\kbonefont\Desktop\Some_data\REPORT 3Aug16 - 27Oct17 Mandan DIMA 5.3 as of 2018-02-14.mdb")
-# # db.str.close()
-# # db.str.commit()
-# # db.str.rollback()
-# df = pk_add("tblGapDetail",dimapath3)
-# dbcols = pd.read_sql(f'SELECT * FROM "tblGapDetail" LIMIT 1', db.str)
-# cur = db.str.cursor()
-# engine = create_engine(sql_str(config()))
-
-# if len(df.columns.tolist())>1:
-#     for item in df.columns.tolist():
-#         if item not in dbcols.columns.tolist():
-#             print(f'{item} is not in db')
-#             data = pd.read_sql(f'SELECT * FROM "tblGapDetail"', db.str)
-#             str1 = join(f'{item}'+'_inspect')
-#             df1 = pd.concat([data,df[f'{item}']],sort=False, axis=1)
-#             # cur.execute(f'DROP TABLE "tblGapDetail"')
-#             # cur.commit()
-#             df1.to_sql(name="tblGapDetail",con=engine, index=False, if_exists='replace', chunksize=500)
-#             print(str1, 'column added to db')
-#
-# if len(df.columns.tolist())>1:
-#     for item in dbcols.columns.tolist():
-#         if item not in df.columns.tolist():
-#             print(f'{item} is not in new df')
-#             df1 = df.copy(deep=True)
-#             str2 = join(f'{item}'+'_fromdf')
-#             df1[f'{str2}'] = pd.Series()
-#             # cur.execute(f'DROP TABLE "tblGapDetail"')
-#             # cur.commit()
-#             df1.to_sql(name="tblGapDetail",con=engine, index=False, if_exists='replace', chunksize=500)
-#             print(str2, 'column added to df and ingested')
-
-
-
-#
-# str = 'lol'
-# str.capitalize()
-#
-#
-# from sqlalchemy import MetaData
-# from sqlalchemy.ext.declarative import declarative_base
-# from sqlalchemy import Column, Integer, String, DateTime, Boolean, Float
-# Base = declarative_base()
-#
-# df = pd.DataFrame({
-# 'a':[1,2],
-# 'b':[3,4]
-# })
-#
-# dimapath2 = normpath(r"C:\Users\kbonefont\Desktop\Some_data\NM_TaosFO_LUP_2018_5-3b_01.mdb")
-# arc = arcno()
-# df = arc.MakeTableView('tblGapHeader', dimapath2)
-#
-#
-# for item in [print(df[col].dtype,col) for col in df.columns]:
-#     print(item)
-# typeconv = {
-# 'int64':Integer,
-# 'O':String,
-# '<M8[ns]':DateTime,
-# 'bool':Boolean,
-# 'float64':Float
-# }
-# df.columns
-# typeconv[f'{tp}']
-# df['LineKey'].dtype
-# df['DateModified'].dtype
-# df['GapMin'].dtype
-# df['PerennialsCanopy'].dtype
-# tp=df['a'].dtype
-#
-# def tbl(tablename,dimapath):
-#     arc = arcno()
-#     df = arc.MakeTableView(f'{tablename}', dimapath).columns
-#     Base = declarative_base()
-#     class myclass(Base):
-#         __tablename__ = f'{tablename.lower()}'
-#
-#         field1 = Column(Integer, primary_key=True)
-#         field2 = Column(String)
-#
-#         #
-#         # def __repr__(self):
-#         #     return "<User(name='%s', fullname='%s', nickname='%s')>" % (self.name, self.fullname, self.nickname)
-#
-#     myclass.__name__ = tablename
-#     return myclass
-# stuff = tbl('Stuff','id','color')
-# type(stuff)
-
-
 def pg_send(tablename, dimapath):
 
     cursor = db.str.cursor()
     try:
         # adds primarykey to access table and returns dataframe with it
         df = pk_add(tablename,dimapath)
-        # df = pk_add('tblGapDetail',dimapath3)
+
         # adds dateloaded and db key to dataframe
         df['DateLoadedInDB']= datetime.now().strftime("%d-%m-%Y %H:%M:%S")
         if dimapath.find('calibration')!=-1:
@@ -480,8 +387,6 @@ def pg_send(tablename, dimapath):
             df['DBKey']=split(splitext(dimapath)[0])[1].replace(" ","")
         else:
             df['DBKey']=split(splitext(dimapath)[0])[1].replace(" ","")
-        # if 'tempSeqNo' in df.columns:
-        #     df=df.drop('tempSeqNo',1)
 
         # use pandas 'to_sql' to send altered dataframe to postgres db
         engine = create_engine(sql_str(config()))
@@ -496,48 +401,31 @@ def pg_send(tablename, dimapath):
 
                 dbcols = pd.read_sql(f'SELECT * FROM "{tablename}" LIMIT 1', db.str)
 
-                # df.columns.tolist().sort()
-                # dbcols.columns.tolist().sort()
+
                 if len(df.columns.tolist())>1:
                     for item in df.columns.tolist():
                         if item not in dbcols.columns.tolist():
                             print(f'{item} is not in db')
-                            data = pd.read_sql(f'SELECT * FROM "{tablename}"', db.str)
-                            str1 = join(f'{item}'+'_CHK')
-                            df1 = pd.concat([data,df[f'{item}']],sort=False, axis=1)
-                            # to_sql: hangs on 'replace' operation, also, deletes previous db table data
-                            # explore sqlalchemy bulk upload
-                            df1.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='replace')
-                            # need:
-                            # 1. pull data from db
-                            # 2. delete table,
-                            # 3. modify pulled table, add columns or rows etc.
-                            # 4. reingest modified table
+                            vartype = {
+                            'int64':'int',
+                            "object":'text',
+                            'datetime64[ns]':'timestamp',
+                            'bool':'boolean',
+                            'float64':'float'
+                            }
 
-                            print(str1, 'column added to db')
+                            cursor.execute("""
+                            ALTER TABLE "%s" ADD COLUMN "%s" %s
+                            """ % (f'{tablename}',f'{item}',vartype[f'{df[f"{item}"].dtype}'].upper()))
+                            db.str.commit()
 
-                    for item in dbcols.columns.tolist():
-                        if item not in df.columns.tolist():
-                            print(f'column {item} missing from supplied df')
-                            # df1 = df.copy(deep=True)
-                            # df1[f'{item}'] = pd.Series()
-                            # df1.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='replace', chunksize=500)
+                df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append')
 
-
-
-            # else:
-            #     df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append', chunksize=500)
-            #     db.str.commit()
-
-
-            # return df
         else:
             print(f'Ingestion to postgresql DB aborted: {tablename} is empty')
 
     except Exception as e:
         print(e)
-        # cursor.execute("ROLLBACK")
-        # db.str.commit()
 
 def drop_one(table):
     con = db.str
