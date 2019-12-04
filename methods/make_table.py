@@ -10,8 +10,13 @@ class Table:
         self.path = path
         self.in_table = in_table
         con = Acc(self.path).con
-        query = 'SELECT * FROM "{table}"'.format(table=self.in_table)
+        query = f'SELECT * FROM "{self.in_table}"'
         self.temp = pd.read_sql(query,con)
 
     def temp(self):
         return self.temp
+
+
+query = 'SELECT * FROM "tblLines"'
+con = Acc(self.path).con
+pandas.read_sql(query, con)
