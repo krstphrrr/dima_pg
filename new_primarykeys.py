@@ -109,10 +109,9 @@ returns the table with the proper PrimaryKey field appended.
 to-do:
 - DONE implement sites table
 - DONE detect calibration in dimapath and append to dbkey? or source
-- keep unexpected columns
+- DONE keep unexpected columns
 """
 arc = arcno()
-# plottmp = arc.MakeTableView('tblBSNE_Stack', path)
 
 def pk_add(tablename,dimapath):
     """
