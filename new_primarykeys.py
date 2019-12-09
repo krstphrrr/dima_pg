@@ -99,7 +99,8 @@ def bsne_pk(dimapath):
         stack = arc.MakeTableView("tblBSNE_Stack", dimapath)
 
         df = arc.AddJoin(stack, ddt, "StackID", "StackID")
-        df2 = arc.CalculateField(df,"PrimaryKey","Location","collectDate","PlotKey")
+        # PlotKey+CollecDate
+        df2 = arc.CalculateField(df,"PrimaryKey","PlotKey","collectDate")
         return df2
     else:
 
@@ -110,7 +111,7 @@ def bsne_pk(dimapath):
 
         df = arc.AddJoin(stack, box, "StackID", "StackID")
         df2 = arc.AddJoin(df,boxcol, "BoxID")
-        df2 = arc.CalculateField(df2,"PrimaryKey","Location","collectDate","PlotKey")
+        df2 = arc.CalculateField(df2,"PrimaryKey","PlotKey","collectDate")
         return df2
 
 
@@ -418,7 +419,8 @@ def pg_send(tablename, dimapath):
         # adds dateloaded and db key to dataframe
         df['DateLoadedInDB']= datetime.now().strftime("%d-%m-%Y %H:%M:%S")
         if dimapath.find('calibration')!=-1:
-            df['DBKey']=join('calibration_',split(splitext(dimapath)[0])[1].replace(" ",""))
+
+            df['DBKey']=join('calibration_',split(splitext(dimapath.replace('Calibration','').replace('calibration',''))[0])[1].replace(" ",""))
             df['DBKey']=split(splitext(dimapath)[0])[1].replace(" ","")
         else:
             df['DBKey']=split(splitext(dimapath)[0])[1].replace(" ","")
@@ -427,17 +429,17 @@ def pg_send(tablename, dimapath):
             #handles mwack or ddt names, turns on signals for further processing
             if (df.ItemType[0]=='M') or (df.ItemType[0]=='m'):
                 mwacksig = 1
-                if tablename.find('Stack')!=-1:
-                    newtablename = 'tblHorizontalFlux_Locations'
-                else:
-                    newtablename = 'tblHorizontalFlux'
+                # if tablename.find('Stack')!=-1:
+                #     # newtablename = 'tblHorizontalFlux_Locations'
+                # else:
+                newtablename = 'tblHorizontalFlux'
 
             elif (df.ItemType[0]=='T') or (df.ItemType[0]=='t'):
                 ddtsig = 1
-                if tablename.find('Stack')!=-1:
-                    newtablename = 'tblDustDeposition_Locations'
-                else:
-                    newtablename = 'tblDustDeposition'
+                # if tablename.find('Stack')!=-1:
+                #     # newtablename = 'tblDustDeposition_Locations'
+                # else:
+                newtablename = 'tblDustDeposition'
         else:
             pass
 
@@ -452,10 +454,13 @@ def pg_send(tablename, dimapath):
                     df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append')
                     break
                 else:
-                    tablename = newtablename
-                    df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append')
-                    mwacksig = 0
-                    ddtsig = 0
+                    if tablename.find('Stack')!=-1:
+                        pass
+                    else:
+                        tablename = newtablename
+                        df.to_sql(name=f'{tablename}',con=engine, index=False, if_exists='append')
+                        mwacksig = 0
+                        ddtsig = 0
 
 
             except Exception as e:
