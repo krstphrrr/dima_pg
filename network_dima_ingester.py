@@ -4,13 +4,14 @@ from arcnah import arcno
 from new_primarykeys import pk_add, gap_pk, pg_send, drop_one, bsne_pk
 from datetime import datetime
 import pandas as pd
+from utils import db
 
 arc = arcno()
 """
 Directory with network dimas to ingest!
 
 """
-path = r"C:\Users\kbonefont\Desktop\newdimas\New"
+path = r"C:\Users\kbonefont\Desktop\newdimas\Network_DIMAs_20190826"
 networkdims = listdir(path)
 #normpath(join(path, networkdims))
 """
@@ -54,3 +55,65 @@ completepath = normpath(join(path,networkdims[0]))
 for table in arc.tablelist:
     if arc.MakeTableView(table,completepath).shape[0]>2:
         print(table, arc.MakeTableView(table,completepath).shape[0])
+"""
+Fixing HorizontalFlux table:
+ - two dateestablished fields (from join)
+ - two notes! one is empty (drop)
+"""
+
+for index, row, in bsne_pk(normpath(join(path,networkdims[0]))).iterrows():
+    if (row['DateEstablished_x']==null):
+
+        fieldCounter+=1
+        suspectRows.update({fieldCounter:row})
+print(fieldCounter)
+"""
+Fixing fields
+
+"""
+try:
+    con = db.str
+    cur = db.str.cursor()
+
+    cur.execute("""
+    ALTER TABLE public."tblHorizontalFlux"
+    DROP COLUMN  "Notes";
+    """)
+
+    cur.execute("""
+    ALTER TABLE public."tblHorizontalFlux"
+    RENAME COLUMN "DateEstablished_x" TO "DateEstablished";
+    """)
+
+    cur.execute("""
+    ALTER TABLE public."tblHorizontalFlux"
+    RENAME COLUMN "DateModified_x" TO "DateModified";
+    """)
+
+    cur.execute("""
+    ALTER TABLE public."tblHorizontalFlux"
+    RENAME COLUMN "Notes_x" TO "Notes";
+    """)
+
+    ### DROPS
+
+    cur.execute("""
+    ALTER TABLE public."tblHorizontalFlux"
+    DROP COLUMN "DateEstablished_y";
+    """)
+
+    cur.execute("""
+    ALTER TABLE public."tblHorizontalFlux"
+    DROP COLUMN "DateModified_y";
+    """)
+
+    cur.execute("""
+    ALTER TABLE public."tblHorizontalFlux"
+    DROP COLUMN "Notes_y";
+    """)
+    con.commit()
+except Exception as e:
+    con = db.str
+    cur = db.str.cursor()
+
+    print(e)
